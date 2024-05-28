@@ -1,0 +1,5 @@
+misc/**
+**/terraform-variables/**/*.tfvars
+**/terraform-variables/**/backend.config
+**/*.plan
+**/.DS_Store

@@ -1,0 +1,12 @@
+ingress:
+  name: ingress-resource
+  annotations:    
+    nginx.ingress.kubernetes.io/rewrite-target: "/$2"
+  ingressClassName: "nginx"
+  rules:
+  - host: "<DNS>"
+    paths:
+    - pathType: ImplementationSpecific
+      path: /smoke/?(.*)
+      serviceName: nginxapp-svc
+      servicePort: 80

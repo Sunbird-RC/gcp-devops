@@ -1,0 +1,7 @@
+name: projects/<PROJECT_ID>/policies/iam.allowedPolicyMemberDomains
+spec:
+  rules:
+  - values:
+      allowedValues:
+      - "<DIRECTORY_CUSTOMER_ID>"
+      

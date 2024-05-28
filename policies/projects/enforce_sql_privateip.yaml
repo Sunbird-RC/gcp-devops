@@ -1,0 +1,5 @@
+name: projects/<PROJECT_ID>/policies/sql.restrictPublicIp
+spec:
+  rules:
+  - enforce: true
+      

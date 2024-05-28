@@ -1,0 +1,6 @@
+controller:
+  replicaCount: 3
+  service:
+      type: ClusterIP      
+      annotations:        
+        cloud.google.com/neg: '{"exposed_ports": {"80":{"name": "<NAME>-dev-nginx-80-neg"}}}'

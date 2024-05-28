@@ -1,0 +1,35 @@
+steps:
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'gcloud'
+  args: ['container', 'clusters', 'get-credentials', '${_CLUSTER_NAME_}', '--project=${_PROJECT_ID_}', '--region=${_REGION_}']
+- name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
+  entrypoint: 'helm'
+  args: ['uninstall', 'nginx-dev', '-n',  '${_NGINX_CONFIG_NAMESPACE_}']
+- name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
+  entrypoint: 'helm'
+  args: ['uninstall', 'csi-secrets-store', '-n',  'kube-system']
+- name: 'gcr.io/cloud-builders/kubectl'
+  entrypoint: 'kubectl'
+  args: ['delete', '-f', '${_IPMASQ_CONFIG_PATH_}', '-n', 'kube-system']
+- name: 'gcr.io/cloud-builders/kubectl'
+  entrypoint: 'kubectl'
+  args: ['delete', '-f', '${_STORAGE_CLASS_CONFIG_PATH_}']
+- name: 'gcr.io/cloud-builders/kubectl'
+  entrypoint: 'kubectl'
+  args: ['delete', '-f', '${_CSI_PLUGIN_PATH_}']
+tags: ['cloud-builders-community']
+serviceAccount: "projects/${_PROJECT_ID_}/serviceAccounts/${_PROJECT_ID_}-sa@${_PROJECT_ID_}.iam.gserviceaccount.com"
+logsBucket: "gs://${_LOG_BUCKET_}"
+substitutions:
+  _PROJECT_ID_: ''
+  _REGION_: ''
+  _CLUSTER_NAME_: ''
+  _NGINX_CONFIG_NAMESPACE_: ''
+  _IPMASQ_CONFIG_PATH_: ''
+  _STORAGE_CLASS_CONFIG_PATH_: ''
+  _CSI_PLUGIN_PATH_: ''
+  _LOG_BUCKET_: ''
+options:
+    dynamicSubstitutions: true
+    # pool:
+    #   name: 'projects/${_PROJECT_ID_}/locations/${_REGION_}/workerPools/${_PROJECT_ID_}-build-pool'

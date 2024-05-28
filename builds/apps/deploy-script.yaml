@@ -1,0 +1,26 @@
+steps:
+- name: 'gcr.io/cloud-builders/gcloud'
+  id: 'get-credentials'
+  args: ['container', 'clusters', 'get-credentials', '${_CLUSTER_NAME_}', '--project=${_PROJECT_ID_}', '--region=${_REGION_}']
+- name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
+  id: 'app'
+  entrypoint: 'helm'
+  args: ['upgrade', '--install', '--create-namespace', '${_HELM_CHART_NAME_}', '${_HELM_CHART_PATH_}', '-f', '${_HELM_VALUES_PATH_}', '-n',  '${_K8S_NAMESPACE_}']
+  waitFor:
+  - 'get-credentials'
+tags: ['cloud-builders-community']
+serviceAccount: "projects/${_PROJECT_ID_}/serviceAccounts/${_PROJECT_ID_}-sa@${_PROJECT_ID_}.iam.gserviceaccount.com"
+logsBucket: "gs://${_LOG_BUCKET_}"
+substitutions:
+  _PROJECT_ID_: ''
+  _REGION_: ''
+  _CLUSTER_NAME_: ''
+  _HELM_CHART_NAME_: ''
+  _HELM_CHART_PATH_: ''
+  _HELM_VALUES_PATH_: ''
+  _K8S_NAMESPACE_: ''
+  _LOG_BUCKET_: ''
+options:
+    dynamicSubstitutions: true
+    # pool:
+    #   name: 'projects/${_PROJECT_ID_}/locations/${_REGION_}/workerPools/${_PROJECT_ID_}-build-pool'

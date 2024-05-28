@@ -1,0 +1,5 @@
+name: projects/<PROJECT_ID>/policies/compute.skipDefaultNetworkCreation
+spec:
+  rules:
+  - enforce: true
+      

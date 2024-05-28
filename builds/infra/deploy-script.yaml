@@ -1,0 +1,30 @@
+steps:
+- name: 'hashicorp/terraform:1.6.1'
+  id: 'init'
+  dir: '${_WORKING_DIR_}'
+  args: ['init', '--reconfigure', '--backend-config=${_BKEND_CONFIG_}']  
+- name: 'hashicorp/terraform:1.6.1'
+  id: 'plan'
+  dir: '${_WORKING_DIR_}'
+  args: ['plan', '-out', 'out.plan', '-var-file=${_TFSVARS_FILE_PATH_}']
+  waitFor:
+  - 'init'
+- name: 'hashicorp/terraform:1.6.1'
+  id: 'apply'
+  dir: '${_WORKING_DIR_}'
+  args: ['apply', 'out.plan']
+  waitFor:
+  - 'plan'
+tags: ['cloud-builders-community']
+serviceAccount: "projects/${_PROJECT_ID_}/serviceAccounts/${_PROJECT_ID_}-sa@${_PROJECT_ID_}.iam.gserviceaccount.com"
+logsBucket: "gs://${_LOG_BUCKET_}"
+substitutions:
+  _PROJECT_ID_: ''  
+  _WORKING_DIR_: ''
+  _TFSVARS_FILE_PATH_: ''
+  _LOG_BUCKET_: ''
+  _BKEND_CONFIG_: ''
+options:
+    dynamicSubstitutions: true
+    # pool:
+    #   name: 'projects/${_PROJECT_ID_}/locations/${_REGION_}/workerPools/${_PROJECT_ID_}-build-pool'

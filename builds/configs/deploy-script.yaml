@@ -1,0 +1,72 @@
+steps:
+- name: 'gcr.io/cloud-builders/gcloud'
+  id: 'get-credentials'
+  entrypoint: 'gcloud'
+  args: ['container', 'clusters', 'get-credentials', '${_CLUSTER_NAME_}', '--project=${_PROJECT_ID_}', '--region=${_REGION_}']
+- name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
+  id: 'repo-add-nginx'
+  entrypoint: 'helm'
+  args: ['repo', 'add', 'ingress-nginx', 'https://kubernetes.github.io/ingress-nginx']
+  waitFor:
+  - 'get-credentials'
+- name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
+  id: 'repo-update-nginx'
+  entrypoint: 'helm'
+  args: ['repo', 'update']
+  waitFor:
+  - 'repo-add-nginx'
+- name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
+  id: 'ingress-nginx'
+  entrypoint: 'helm'
+  args: ['upgrade', '--install', '--create-namespace', 'nginx-dev', 'ingress-nginx/ingress-nginx', '-f', '${_NGINX_CONFIG_PATH_}', '-n',  '${_NGINX_CONFIG_NAMESPACE_}']
+  waitFor:
+  - 'repo-update-nginx'
+- name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
+  id: 'repo-add-csi'
+  entrypoint: 'helm'
+  args: ['repo', 'add', 'secrets-store-csi-driver', 'https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts']
+- name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
+  id: 'repo-update-csi'
+  entrypoint: 'helm'
+  args: ['repo', 'update']
+  waitFor:
+  - 'repo-add-csi'
+- name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
+  id: 'secrets-store-csi-driver'
+  entrypoint: 'helm'
+  args: ['upgrade', '--install', 'csi-secrets-store', 'secrets-store-csi-driver/secrets-store-csi-driver', '--set', 'syncSecret.enabled=true', '--set', 'enableSecretRotation=true', '-n',  'kube-system']
+  waitFor:
+  - 'repo-update-csi'
+# FOR PUBLIC GKE CLUSTERS ONLY (OPTIONAL)
+- name: 'gcr.io/cloud-builders/kubectl'
+  entrypoint: 'kubectl'
+  args: ['apply', '-f', '${_IPMASQ_CONFIG_PATH_}', '-n', 'kube-system']
+- name: 'gcr.io/cloud-builders/kubectl'
+  id: 'storage-class'
+  entrypoint: 'kubectl'
+  args: ['apply', '-f', '${_STORAGE_CLASS_CONFIG_PATH_}']
+  waitFor:
+  - 'secrets-store-csi-driver'
+- name: 'gcr.io/cloud-builders/kubectl'
+  id: 'csi-plugin'
+  entrypoint: 'kubectl'
+  args: ['apply', '-f', '${_CSI_PLUGIN_PATH_}']
+  waitFor:
+  - 'storage-class'
+tags: ['cloud-builders-community']
+serviceAccount: "projects/${_PROJECT_ID_}/serviceAccounts/${_PROJECT_ID_}-sa@${_PROJECT_ID_}.iam.gserviceaccount.com"
+logsBucket: "gs://${_LOG_BUCKET_}"
+substitutions:
+  _PROJECT_ID_: ''
+  _REGION_: ''
+  _CLUSTER_NAME_: ''
+  _NGINX_CONFIG_PATH_: ''
+  _NGINX_CONFIG_NAMESPACE_: ''
+  _IPMASQ_CONFIG_PATH_: ''
+  _STORAGE_CLASS_CONFIG_PATH_: ''
+  _CSI_PLUGIN_PATH_: ''
+  _LOG_BUCKET_: ''
+options:
+    dynamicSubstitutions: true
+    # pool:
+    #   name: 'projects/${_PROJECT_ID_}/locations/${_REGION_}/workerPools/${_PROJECT_ID_}-build-pool'
