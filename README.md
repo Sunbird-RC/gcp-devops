@@ -266,6 +266,8 @@ gcloud services enable cloudbuild.googleapis.com
 gcloud services enable sqladmin.googleapis.com
 gcloud services enable redis.googleapis.com
 gcloud services enable secretmanager.googleapis.com
+gcloud.cmd services disable servicenetworking.googleapis.com
+gcloud.cmd services enable servicenetworking.googleapis.com
 
 gcloud config set compute/region $REGION
 gcloud config set compute/zone $ZONE

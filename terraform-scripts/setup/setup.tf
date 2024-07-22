@@ -1,10 +1,10 @@
 provider "google" {
-    project = var.projectInfo.project
+    project = var.project_id
     region = var.projectInfo.region   
 }
 
 data "google_service_account" "project_sa" {
-    account_id = var.serviceAccountInfo.id
+    account_id = var.service_account
 }
 
 data "google_compute_network" "project_vpc" {
@@ -15,19 +15,19 @@ data "google_compute_subnetwork" "gke_subnet" {
   name = var.networkInfo.subnet
 }
 
-data "google_compute_address" "reserved_opsvm_public_ip" {
-  name = var.networkInfo.opsvmIPName
+data "google_compute_address" "reserved_nat_public_ip" {
+  name = var.natipInfo.name
 }
 
 resource "google_container_cluster" "gke_cluster" {
     name = var.clusterInfo.name
-    project = var.projectInfo.project
+    project = var.project_id
     location = var.projectInfo.region
     release_channel {
       channel = var.clusterInfo.release_channel
     }
     initial_node_count = var.clusterInfo.initial_node
-    deletion_protection = false
+#     deletion_protection = false
     remove_default_node_pool = var.clusterInfo.remove_default_pool
     networking_mode = var.clusterInfo.networking_mode
     network = data.google_compute_network.project_vpc.name
@@ -49,7 +49,10 @@ resource "google_container_cluster" "gke_cluster" {
       content {
         gcp_public_cidrs_access_enabled = var.clusterInfo.master_authorized_networks_config.gcp_public_cidrs_access_enabled
         cidr_blocks {
-          cidr_block = "${data.google_compute_address.reserved_opsvm_public_ip.address}/32"
+          cidr_block = "${data.google_compute_address.reserved_nat_public_ip.address}/32"
+        }
+        cidr_blocks {
+          cidr_block = module.cloudbuild_private_pool.workerpool_range
         }
       }
     }
@@ -61,7 +64,7 @@ resource "google_container_cluster" "gke_cluster" {
       enabled = var.clusterInfo.network_policy
     }
     workload_identity_config {
-      workload_pool = "${var.projectInfo.project}.svc.id.goog"
+      workload_pool = "${var.project_id}.svc.id.goog"
     }
     addons_config {
       horizontal_pod_autoscaling {
@@ -75,12 +78,101 @@ resource "google_container_cluster" "gke_cluster" {
 
     authenticator_groups_config {
       security_group = "gke-security-groups@monojitdatta.altostrat.com"
-    } 
+    }
+   depends_on = [module.cloudbuild_private_pool]
+}
+
+module "cloudbuild_private_pool" {
+  source  = "GoogleCloudPlatform/secure-cicd/google//modules/cloudbuild-private-pool"
+  version = "1.2.1"
+  project_id                = var.project_id
+  network_project_id        = var.project_id
+  location                  = var.projectInfo.region
+  create_cloudbuild_network = true
+  private_pool_vpc_name     = "private-build-pool"
+}
+
+module "vpn_ha-1" {
+  source            = "terraform-google-modules/vpn/google//modules/vpn_ha"
+  version           = "~> 4.0"
+  project_id        = var.project_id
+  region            = var.projectInfo.region
+  network           = "private-build-pool"
+  name              = "cloudbuild-to-gke"
+  peer_gcp_gateway  = module.vpn_ha-2.self_link
+  router_asn        = 65001
+
+  tunnels = {
+    remote-0 = {
+      bgp_peer = {
+        address = "169.254.1.1"
+        asn     = 65002
+      }
+      bgp_peer_options                = null
+      bgp_session_range               = "169.254.1.2/30"
+      ike_version                     = 2
+      vpn_gateway_interface           = 0
+      peer_external_gateway_interface = null
+      shared_secret                   = ""
+    }
+
+    remote-1 = {
+      bgp_peer = {
+        address = "169.254.2.1"
+        asn     = 65002
+      }
+      bgp_peer_options                = null
+      bgp_session_range               = "169.254.2.2/30"
+      ike_version                     = 2
+      vpn_gateway_interface           = 1
+      peer_external_gateway_interface = null
+      shared_secret                   = ""
+    }
+
+  }
+  depends_on = [module.cloudbuild_private_pool]
+}
+
+module "vpn_ha-2" {
+  source              = "terraform-google-modules/vpn/google//modules/vpn_ha"
+  version             = "~> 4.0"
+  project_id          = var.project_id
+  region              = var.projectInfo.region
+  network             = data.google_compute_network.project_vpc.name
+  name                = "gke-to-cloudbuild"
+  router_asn          = 65002
+  peer_gcp_gateway    = module.vpn_ha-1.self_link
+
+  tunnels = {
+    remote-0 = {
+      bgp_peer = {
+        address = "169.254.1.2"
+        asn     = 65001
+      }
+      bgp_session_range               = "169.254.1.1/30"
+      ike_version                     = 2
+      vpn_gateway_interface           = 0
+      shared_secret                   = module.vpn_ha-1.random_secret
+    }
+
+    remote-1 = {
+      bgp_peer = {
+        address = "169.254.2.2"
+        asn     = 65001
+      }
+      bgp_session_range               = "169.254.2.1/30"
+      ike_version                     = 2
+      vpn_gateway_interface           = 1
+      shared_secret                   = module.vpn_ha-1.random_secret
+    }
+
+  }
+  depends_on = [module.cloudbuild_private_pool]
 }
 
 resource "google_container_node_pool" "system_pool" {
     name = var.clusterInfo.nodepool_config[0].name
-    project = var.projectInfo.project
+    project = var.project_id
     cluster = google_container_cluster.gke_cluster.id
     initial_node_count = var.clusterInfo.nodepool_config[0].initial_node
     node_config {
@@ -96,7 +188,7 @@ resource "google_container_node_pool" "system_pool" {
 
 resource "google_container_node_pool" "worker_pool" {
     name = var.clusterInfo.nodepool_config[1].name
-    project = var.projectInfo.project
+    project = var.project_id
     cluster = google_container_cluster.gke_cluster.id
     initial_node_count = var.clusterInfo.nodepool_config[1].initial_node
     node_config {

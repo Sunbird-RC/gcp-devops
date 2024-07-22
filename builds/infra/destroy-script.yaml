@@ -6,7 +6,7 @@ steps:
 - name: 'hashicorp/terraform:1.6.1'
   id: 'plan'
   dir: '${_WORKING_DIR_}'
-  args: ['plan', '-destroy', '-out', 'out.destroy.plan', '-var-file=${_TFSVARS_FILE_PATH_}']
+  args: ['plan', '-destroy', '-out', 'out.destroy.plan', '-var-file=${_TFSVARS_FILE_PATH_}', '-var=project_id=${_PROJECT_ID_}', '-var=service_account=${_SERVICE_ACCOUNT_}']
   waitFor:
   - 'init'
 - name: 'hashicorp/terraform:1.6.1'
@@ -16,10 +16,11 @@ steps:
   waitFor:
   - 'plan'
 tags: ['cloud-builders-community']
-serviceAccount: "projects/${_PROJECT_ID_}/serviceAccounts/${_PROJECT_ID_}-sa@${_PROJECT_ID_}.iam.gserviceaccount.com"
+serviceAccount: "projects/${_PROJECT_ID_}/serviceAccounts/${_SERVICE_ACCOUNT_}"
 logsBucket: "gs://${_LOG_BUCKET_}"
 substitutions:
-  _PROJECT_ID_: ''  
+  _PROJECT_ID_: ''
+  _SERVICE_ACCOUNT_: ''
   _WORKING_DIR_: ''
   _TFSVARS_FILE_PATH_: ''
   _LOG_BUCKET_: ''

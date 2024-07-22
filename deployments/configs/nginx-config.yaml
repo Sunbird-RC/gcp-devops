@@ -3,4 +3,4 @@ controller:
   service:
       type: ClusterIP      
       annotations:        
-        cloud.google.com/neg: '{"exposed_ports": {"80":{"name": "<NAME>-dev-nginx-80-neg"}}}'
+        cloud.google.com/neg: '{"exposed_ports": {"80":{"name": "fr-test-nginx-80-neg"}}}'

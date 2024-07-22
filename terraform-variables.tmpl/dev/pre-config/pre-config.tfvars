@@ -1,18 +1,13 @@
 projectInfo = {
-        project = "<PROJECT_ID>"
-        region = "asia-south1"
-}
-
-serviceAccountInfo = {
-    name = "<PROJECT_ID>-sa@<PROJECT_ID>.iam.gserviceaccount.com"
+    region = "asia-south1"
 }
 
 networkInfo = {
-    name = "<NAME>-dev-vpc"
+    name = "functional-registry-vpc"
     auto_create_subnetworks = false
     mtu = 1460
     gke_subnet = {
-        name = "<NAME>-dev-gke-subnet"
+        name = "functional-registry-gke-subnet"
         ip_cidr_range = "10.0.0.0/24"
         pods_ip_range = {
             range_name = "pods-range"
@@ -24,37 +19,37 @@ networkInfo = {
         }
     },
     psc_subnet = {
-        name = "<NAME>-dev-psc-subnet"
+        name = "functional-registry-psc-subnet"
         ip_cidr_range = "10.0.1.0/24"
         purpose = "PRIVATE_SERVICE_CONNECT"
     },
     proxy_subnet = {
-        name = "<NAME>-dev-proxy-subnet"
+        name = "functional-registry-proxy-subnet"
         ip_cidr_range = "10.0.2.0/24"
         purpose = "REGIONAL_MANAGED_PROXY"
     },
     operations_subnet = {
-        name = "<NAME>-dev-operations-subnet",
+        name = "functional-registry-operations-subnet",
         ip_cidr_range = "10.0.3.0/24"
     },
     db_subnet = {
-        name = "<NAME>-dev-db-subnet",
+        name = "functional-registry-db-subnet",
         ip_cidr_range = "10.0.4.0/24"
     }
 }
 
 firewallPolicyInfo = {
-    name = "<NAME>-nw-policy"
+    name = "functional-registry-nw-policy"
     description = ""
 }
 
 firewallPolicyAssocInfo = {
-    name = "<NAME>-nw-policy-assoc"
+    name = "functional-registry-nw-policy-assoc"
 }
 
 firewallRuleInfo = [
     {
-        name = "<NAME>-dev-allow-ssh"
+        name = "functional-registry-allow-ssh"
         action = "allow"
         description = ""
         direction = "INGRESS"
@@ -71,7 +66,7 @@ firewallRuleInfo = [
         }
     },
     {
-        name = "<NAME>-dev-allow-http(s)"
+        name = "functional-registry-allow-http(s)"
         action = "allow"
         description = ""
         direction = "INGRESS"
@@ -88,7 +83,7 @@ firewallRuleInfo = [
         }
     },
     {
-        name = "<NAME>-dev-allow-health-check"
+        name = "functional-registry-allow-health-check"
         action = "allow"
         description = ""
         direction = "INGRESS"
@@ -104,7 +99,7 @@ firewallRuleInfo = [
         }
     },
     {
-        name = "<NAME>-dev-allow-postgres"
+        name = "functional-registry-allow-postgres"
         action = "allow"
         description = ""
         direction = "INGRESS"
@@ -121,7 +116,7 @@ firewallRuleInfo = [
         }
     },
     {
-        name = "<NAME>-dev-allow-egress"
+        name = "functional-registry-allow-egress"
         action = "allow"
         description = ""
         direction = "EGRESS"
@@ -139,32 +134,34 @@ firewallRuleInfo = [
 ]
 
 lbipInfo = {
-    name = "<NAME>-dev-glb-lb-ip"
+    name = "functional-registry-glb-lb-ip"
 }
 
+sql_ip_name = "functional-registry-sql-lb-ip"
+
 natipInfo = {
-    name = "<NAME>-dev-nat-gw-ip"
+    name = "functional-registry-nat-gw-ip"
 }
 
 routerInfo  = {
-    name = "<NAME>-dev-router"
+    name = "functional-registry-router"
     routerNAT = {
-        name = "<NAME>-dev-router-nat-gw"
+        name = "functional-registry-router-nat-gw"
     }
 }
 
 artifactRegistryInfo = {
-    name = "<NAME>-dev-repo"
-    description = "<NAME> dev repo"
+    name = "functional-registry-repo"
+    description = "functional-registry repo"
     format = "DOCKER"
 }
 
 sqlInfo = {    
-    instanceName = "<PROJECT_ID>-pgsql"
+    instanceName = "functional-registry-pgsql"
     version = "POSTGRES_14"
     settings = {
         tier = "db-custom-2-8192"
-        ipv4_enabled = true
+        ipv4_enabled = false
     }
     protection = false
 }
@@ -172,30 +169,30 @@ sqlInfo = {
 dbInfo = [
 {
     name = "registry"
-    instanceName = "<PROJECT_ID>-pgsql"    
+    instanceName = "functional-registry-pgsql"
 },
 {
     name = "keycloak"
-    instanceName = "<PROJECT_ID>-pgsql"    
+    instanceName = "functional-registry-pgsql"
 }]
 
 memstoreInfo = {
-    name = "<PROJECT_ID>-memstore"
-    display_name = "<NAME>-memstore"
+    name = "functional-registry-memstore"
+    display_name = "functional-registry-memstore"
     tier  = "BASIC"
     sizeInGB = 1
 }
 
 fuseStorageInfo = {
-    name = "<NAME>-fuse-stg"
+    name = "functional-registry-fuse-stg"
     uniform_bucket_level_access = true
     force_destroy = true
     public_access_prevention = "enforced"
 }
 
 opsVMInfo = {
-    name = "<PROJECT_ID>-ops-vm"
-    ip_name = "<NAME>-opsvm-pub-ip"
+    name = "functional-registry-ops-vm"
+    ip_name = "functional-registry-opsvm-pub-ip"
     machine_type = "n2d-standard-2"
     zone =  "asia-south1-a"
     boot_disk =  {
@@ -204,5 +201,5 @@ opsVMInfo = {
 }
 
 secretInfo = {
-    name = "<PROJECT_ID>-secret1"
+    name = "functional-registry-secret1"
 }

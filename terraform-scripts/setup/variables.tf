@@ -1,22 +1,16 @@
+variable "project_id" {
+    type = string
+}
+variable "service_account" {
+    type = string
+}
 variable "projectInfo"{
     type = object({
-        project = string
         region = string
     })
     
     default = {
-        project = ""
         region = "asia-south1"
-    }
-}
-
-variable "serviceAccountInfo" {
-    type = object({
-        id =  string
-    })
-
-    default = {
-        id =  "-sa"
     }
 }
 
@@ -104,4 +98,14 @@ variable "clusterInfo" {
             min_node = 1
         }]
      }
+}
+
+variable "natipInfo" {
+    type = object({
+        name = string
+    })
+
+    default = {
+        name = "sunbirdrc-dev-nat-gw-ip"
+    }
 }

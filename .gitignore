@@ -3,3 +3,4 @@ misc/**
 **/terraform-variables/**/backend.config
 **/*.plan
 **/.DS_Store
+.idea

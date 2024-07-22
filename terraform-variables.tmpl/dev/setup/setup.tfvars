@@ -1,20 +1,17 @@
 projectInfo = {
-    project = "<PROJECT_ID>"
     region = "asia-south1"
 }
-
-serviceAccountInfo = {
-    id =  "<PROJECT_ID>-sa"
+natipInfo = {
+    name = "functional-registry-nat-gw-ip"
 }
-
 networkInfo = {
-    name =  "<NAME>-dev-vpc"
-    subnet = "<NAME>-dev-gke-subnet"
-    opsvmIPName = "<NAME>-opsvm-pub-ip"
+    name =  "functional-registry-vpc"
+    subnet = "functional-registry-gke-subnet"
+    opsvmIPName = "functional-registry-opsvm-pub-ip"
 }
 
 clusterInfo = {
-    name = "<NAME>-dev-cluster"
+    name = "functional-registry-cluster"
     initial_node = 1
     deletion_protection = false
     networking_mode = "VPC_NATIVE"
@@ -26,15 +23,15 @@ clusterInfo = {
     private_cluster_config = null
     master_authorized_networks_config = null
 
-    # private_cluster_config = {
-    #     enable_private_nodes = true
-    #     enable_private_endpoint = false
-    #     master_ipv4_cidr_block = "10.0.6.0/28"
-    #     master_global_access_config = false
-    # }
-    # master_authorized_networks_config = {
-    #     gcp_public_cidrs_access_enabled = false
-    # }
+    private_cluster_config = {
+        enable_private_nodes = true
+        enable_private_endpoint = false
+        master_ipv4_cidr_block = "10.0.6.0/28"
+        master_global_access_config = false
+    }
+    master_authorized_networks_config = {
+        gcp_public_cidrs_access_enabled = false
+    }
 
     nodepool_config = [
     {
