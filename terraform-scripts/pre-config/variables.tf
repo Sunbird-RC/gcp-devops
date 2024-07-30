@@ -39,19 +39,7 @@ variable "networkInfo" {
         ip_cidr_range = string
       })
     })
-    proxy_subnet = object({
-      name          = string
-      ip_cidr_range = string
-    })
-    psc_subnet = object({
-      name          = string
-      ip_cidr_range = string
-    })
     operations_subnet = object({
-      name          = string
-      ip_cidr_range = string
-    })
-    db_subnet = object({
       name          = string
       ip_cidr_range = string
     })
@@ -73,21 +61,7 @@ variable "networkInfo" {
         ip_cidr_range = ""
       }
     }
-    psc_subnet = {
-      name          = ""
-      ip_cidr_range = ""
-      purpose       = ""
-    }
-    proxy_subnet = {
-      name          = ""
-      ip_cidr_range = ""
-      purpose       = ""
-    }
     operations_subnet = {
-      name          = "",
-      ip_cidr_range = ""
-    }
-    db_subnet = {
       name          = "",
       ip_cidr_range = ""
     }
@@ -258,20 +232,6 @@ variable "routerInfo" {
   }
 }
 
-variable "artifactRegistryInfo" {
-  type = object({
-    name        = string
-    description = string
-    format      = string
-  })
-
-  default = {
-    name        = ""
-    description = ""
-    format      = "DOCKER"
-  }
-}
-
 variable "sqlInfo" {
   type = object({
     instanceName = string
@@ -305,35 +265,6 @@ variable "dbInfo" {
   }]
 }
 
-variable "memstoreInfo" {
-  type = object({
-    name         = string
-    display_name = string
-    tier         = string
-    sizeInGB     = number
-  })
-  default = {
-    name         = ""
-    display_name = ""
-    tier         = "BASIC"
-    sizeInGB     = 1
-  }
-}
-
-variable "fuseStorageInfo" {
-  type = object({
-    name                        = string
-    uniform_bucket_level_access = bool
-    force_destroy               = bool
-    public_access_prevention    = string
-  })
-  default = {
-    name                        = ""
-    uniform_bucket_level_access = true
-    force_destroy               = true
-    public_access_prevention    = "enforced"
-  }
-}
 
 variable "opsVMInfo" {
   type = object({
@@ -364,5 +295,77 @@ variable "secretInfo" {
 
   default = {
     name = ""
+  }
+}
+
+variable "clusterInfo" {
+  type = object({
+    name = string
+    initial_node = number
+    deletion_protection = bool
+    networking_mode = string
+    release_channel = string
+    remove_default_pool = bool
+    network_policy = bool
+    pod_autoscale = bool
+    gcsfuse_csi = bool
+    private_cluster_config = object({
+      enable_private_nodes = bool
+      enable_private_endpoint = bool
+      master_ipv4_cidr_block = string
+      master_global_access_config = bool
+    })
+    master_authorized_networks_config = object({
+      gcp_public_cidrs_access_enabled = bool
+    })
+    nodepool_config = list(object({
+      name = string
+      machine_type = string
+      initial_node = number
+      min_node = number
+      max_node = number
+      max_pods_per_node = number
+    }))
+  })
+
+  default = {
+    name = "-cluster"
+    initial_node = 1
+    deletion_protection = false
+    networking_mode = "VPC_NATIVE"
+    release_channel = "STABLE"
+    remove_default_pool = true
+    network_policy = true
+    pod_autoscale = true
+    gcsfuse_csi = true
+    private_cluster_config = {
+      enable_private_nodes = false
+      enable_private_endpoint = false
+      master_ipv4_cidr_block = ""
+      master_global_access_config = false
+    }
+    master_authorized_networks_config = {
+      gcp_public_cidrs_access_enabled = false
+      cidr_blocks = {
+        cidr_block = ""
+      }
+    }
+    nodepool_config = [
+      {
+        name = "system-pool"
+        machine_type = "e2-medium"
+        initial_node = 1
+        max_node = 2
+        max_pods_per_node = 30
+        min_node = 1
+      },
+      {
+        name = "worker-pool"
+        machine_type = "n2d-standard-2"
+        initial_node = 1
+        max_node = 5
+        max_pods_per_node = 50
+        min_node = 1
+      }]
   }
 }

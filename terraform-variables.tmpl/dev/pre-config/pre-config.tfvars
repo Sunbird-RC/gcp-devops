@@ -18,23 +18,9 @@ networkInfo = {
             ip_cidr_range = "10.3.0.0/16"
         }
     },
-    psc_subnet = {
-        name = "functional-registry-psc-subnet"
-        ip_cidr_range = "10.0.1.0/24"
-        purpose = "PRIVATE_SERVICE_CONNECT"
-    },
-    proxy_subnet = {
-        name = "functional-registry-proxy-subnet"
-        ip_cidr_range = "10.0.2.0/24"
-        purpose = "REGIONAL_MANAGED_PROXY"
-    },
     operations_subnet = {
         name = "functional-registry-operations-subnet",
         ip_cidr_range = "10.0.3.0/24"
-    },
-    db_subnet = {
-        name = "functional-registry-db-subnet",
-        ip_cidr_range = "10.0.4.0/24"
     }
 }
 
@@ -78,40 +64,7 @@ firewallRuleInfo = [
             src_ip_ranges = ["0.0.0.0/0"]
             layer4_configs = {
                 ip_protocol = "tcp"
-                ports = ["80", "443", "8080"]
-            }
-        }
-    },
-    {
-        name = "functional-registry-allow-health-check"
-        action = "allow"
-        description = ""
-        direction = "INGRESS"
-        disabled = false
-        enable_logging = true
-        firewall_policy = ""
-        priority = 102
-        match = {
-            src_ip_ranges = ["130.211.0.0/22", "35.191.0.0/16"]
-            layer4_configs = {
-                ip_protocol = "tcp"
-            }
-        }
-    },
-    {
-        name = "functional-registry-allow-postgres"
-        action = "allow"
-        description = ""
-        direction = "INGRESS"
-        disabled = false
-        enable_logging = false
-        firewall_policy = ""
-        priority = 103
-        match = {
-            src_ip_ranges = ["0.0.0.0/0"]
-            layer4_configs = {
-                ip_protocol = "tcp"
-                ports = ["5432"]
+                ports = ["80", "443"]
             }
         }
     },
@@ -158,7 +111,7 @@ artifactRegistryInfo = {
 
 sqlInfo = {    
     instanceName = "functional-registry-pgsql"
-    version = "POSTGRES_14"
+    version = "POSTGRES_15"
     settings = {
         tier = "db-custom-2-8192"
         ipv4_enabled = false
@@ -176,19 +129,6 @@ dbInfo = [
     instanceName = "functional-registry-pgsql"
 }]
 
-memstoreInfo = {
-    name = "functional-registry-memstore"
-    display_name = "functional-registry-memstore"
-    tier  = "BASIC"
-    sizeInGB = 1
-}
-
-fuseStorageInfo = {
-    name = "functional-registry-fuse-stg"
-    uniform_bucket_level_access = true
-    force_destroy = true
-    public_access_prevention = "enforced"
-}
 
 opsVMInfo = {
     name = "functional-registry-ops-vm"
@@ -201,5 +141,39 @@ opsVMInfo = {
 }
 
 secretInfo = {
-    name = "functional-registry-secret1"
+    name = "registry"
+}
+
+clusterInfo = {
+    name = "functional-registry-cluster"
+    initial_node = 1
+    deletion_protection = false
+    networking_mode = "VPC_NATIVE"
+    release_channel = "STABLE"
+    remove_default_pool = true
+    network_policy = true
+    pod_autoscale = true
+    gcsfuse_csi = true
+    private_cluster_config = null
+    master_authorized_networks_config = null
+
+    private_cluster_config = {
+        enable_private_nodes = true
+        enable_private_endpoint = false
+        master_ipv4_cidr_block = "10.0.6.0/28"
+        master_global_access_config = false
+    }
+    master_authorized_networks_config = {
+        gcp_public_cidrs_access_enabled = false
+    }
+
+    nodepool_config = [
+        {
+            name = "worker-pool"
+            machine_type = "n2d-standard-4"
+            initial_node = 1
+            max_node = 5
+            max_pods_per_node = 50
+            min_node = 1
+        }]
 }

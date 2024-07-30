@@ -21,10 +21,10 @@ logsBucket: "gs://${_LOG_BUCKET_}"
 substitutions:
   _PROJECT_ID_: ''
   _SERVICE_ACCOUNT_: ''
-  _WORKING_DIR_: ''
-  _TFSVARS_FILE_PATH_: ''
-  _LOG_BUCKET_: ''
-  _BKEND_CONFIG_: ''
+  _WORKING_DIR_: 'terraform-scripts/pre-config'
+  _TFSVARS_FILE_PATH_: '../../terraform-variables.tmpl/dev/pre-config/pre-config.tfvars'
+  _LOG_BUCKET_: 'in-gcp-apa-con-6002a-npd-1-tfs-stg'
+  _BKEND_CONFIG_: '../../terraform-variables.tmpl/dev/pre-config/backend.config'
 options:
     dynamicSubstitutions: true
     # pool:

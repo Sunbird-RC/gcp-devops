@@ -39,45 +39,12 @@ resource "google_compute_subnetwork" "gke_subnet" {
   ]
 }
 
-resource "google_compute_subnetwork" "proxy_subnet" {
-  name          = var.networkInfo.proxy_subnet.name
-  project       = var.project_id
-  region        = var.projectInfo.region
-  network       = google_compute_network.vpc.id
-  ip_cidr_range = var.networkInfo.proxy_subnet.ip_cidr_range
-  depends_on = [
-    google_compute_network.vpc
-  ]
-}
-
-resource "google_compute_subnetwork" "psc_subnet" {
-  name          = var.networkInfo.psc_subnet.name
-  project       = var.project_id
-  region        = var.projectInfo.region
-  network       = google_compute_network.vpc.id
-  ip_cidr_range = var.networkInfo.psc_subnet.ip_cidr_range
-  depends_on = [
-    google_compute_network.vpc
-  ]
-}
-
 resource "google_compute_subnetwork" "operations_subnet" {
   name          = var.networkInfo.operations_subnet.name
   project       = var.project_id
   region        = var.projectInfo.region
   network       = google_compute_network.vpc.id
   ip_cidr_range = var.networkInfo.operations_subnet.ip_cidr_range
-  depends_on = [
-    google_compute_network.vpc
-  ]
-}
-
-resource "google_compute_subnetwork" "db_subnet" {
-  name          = var.networkInfo.db_subnet.name
-  project       = var.project_id
-  region        = var.projectInfo.region
-  network       = google_compute_network.vpc.id
-  ip_cidr_range = var.networkInfo.db_subnet.ip_cidr_range
   depends_on = [
     google_compute_network.vpc
   ]
@@ -97,7 +64,7 @@ resource "google_compute_network_firewall_policy_association" "fw_policy_assoc" 
 }
 
 resource "google_compute_network_firewall_policy_rule" "fw_rules" {
-  count           = 5
+  count           = length(var.firewallRuleInfo)
   action          = var.firewallRuleInfo[count.index].action
   description     = var.firewallRuleInfo[count.index].description
   direction       = var.firewallRuleInfo[count.index].direction
@@ -117,9 +84,10 @@ resource "google_compute_network_firewall_policy_rule" "fw_rules" {
   }
 }
 
-resource "google_compute_global_address" "reserved_lb_public_ip" {
+resource "google_compute_address" "reserved_lb_public_ip" {
   name = var.lbipInfo.name
 }
+
 resource "google_compute_global_address" "private_ip_block" {
   provider      = google-beta
   name          = var.sql_ip_name
@@ -142,9 +110,6 @@ resource "google_compute_address" "reserved_ngw_public_ip" {
   name = var.natipInfo.name
 }
 
-resource "google_compute_address" "reserved_opsvm_public_ip" {
-  name = var.opsVMInfo.ip_name
-}
 
 resource "google_compute_router" "router" {
   name       = var.routerInfo.name
@@ -173,13 +138,6 @@ resource "google_compute_router_nat" "nat_router" {
   depends_on = [google_compute_router.router]
 }
 
-resource "google_artifact_registry_repository" "artifact_registry" {
-  location      = var.projectInfo.region
-  repository_id = var.artifactRegistryInfo.name
-  description   = var.artifactRegistryInfo.description
-  format        = var.artifactRegistryInfo.format
-}
-
 resource "google_sql_database_instance" "db_instance" {
   name             = var.sqlInfo.instanceName
   region           = var.projectInfo.region
@@ -191,45 +149,18 @@ resource "google_sql_database_instance" "db_instance" {
       ipv4_enabled                                  = var.sqlInfo.settings.ipv4_enabled
       private_network                               = google_compute_network.vpc.id
       enable_private_path_for_google_cloud_services = true
+#       require_ssl = true
+      ssl_mode    = "ENCRYPTED_ONLY"
     }
   }
   deletion_protection = var.sqlInfo.protection
 }
 
 resource "google_sql_database" "db" {
-  count      = 2
+  count      = length(var.dbInfo)
   name       = var.dbInfo[count.index].name
   instance   = var.dbInfo[count.index].instanceName
   depends_on = [google_sql_database_instance.db_instance]
-}
-
-resource "google_redis_instance" "redis" {
-  name           = var.memstoreInfo.name
-  display_name   = var.memstoreInfo.display_name
-  memory_size_gb = 1
-
-  authorized_network = google_compute_network.vpc.id
-
-  lifecycle {
-    prevent_destroy = false
-  }
-}
-
-resource "google_storage_bucket" "fuse_bucket" {
-  name                        = var.fuseStorageInfo.name
-  location                    = var.projectInfo.region
-  force_destroy               = var.fuseStorageInfo.force_destroy
-  public_access_prevention    = var.fuseStorageInfo.public_access_prevention
-  uniform_bucket_level_access = var.fuseStorageInfo.uniform_bucket_level_access
-}
-
-resource "google_storage_bucket_iam_binding" "binding" {
-  bucket = var.fuseStorageInfo.name
-  role   = "roles/storage.admin"
-  members = [
-    "serviceAccount:${data.google_service_account.sa.email}"
-  ]
-  depends_on = [google_storage_bucket.fuse_bucket]
 }
 
 resource "google_compute_instance" "operations_vm" {
@@ -252,17 +183,28 @@ resource "google_compute_instance" "operations_vm" {
     email  = data.google_service_account.sa.email
     scopes = ["cloud-platform"]
   }
+  metadata_startup_script = file("../../deployments/scripts/instance-startup.sh")
 }
 
 resource "google_secret_manager_secret" "secret_basic" {
   secret_id = var.secretInfo.name
-
   replication {
     auto {
 
     }
 
   }
+}
+
+resource "random_password" "password" {
+  length           = 16
+  special          = true
+  override_special = "_%@"
+}
+
+resource "google_secret_manager_secret_version" "secret" {
+  secret      = google_secret_manager_secret.secret_basic.id
+  secret_data = random_password.password.result
 }
 
 resource "google_secret_manager_secret_iam_binding" "secret_iam_binding" {
@@ -274,16 +216,111 @@ resource "google_secret_manager_secret_iam_binding" "secret_iam_binding" {
   ]
 }
 
+resource "google_sql_user" "users" {
+  name     = var.secretInfo.name
+  instance = google_sql_database_instance.db_instance.name
+  password = random_password.password.result
+}
+
+resource "google_container_cluster" "gke_cluster" {
+  name = var.clusterInfo.name
+  project = var.project_id
+  location = var.projectInfo.region
+  release_channel {
+    channel = var.clusterInfo.release_channel
+  }
+  initial_node_count = var.clusterInfo.initial_node
+  #     deletion_protection = false
+  remove_default_node_pool = var.clusterInfo.remove_default_pool
+  networking_mode = var.clusterInfo.networking_mode
+  network = google_compute_network.vpc.name
+  subnetwork = google_compute_subnetwork.gke_subnet.name
+
+  dynamic private_cluster_config {
+    for_each = (var.clusterInfo.private_cluster_config == null) ? [] : [1]
+    content {
+      enable_private_nodes = var.clusterInfo.private_cluster_config.enable_private_nodes
+      enable_private_endpoint = var.clusterInfo.private_cluster_config.enable_private_endpoint
+      master_ipv4_cidr_block = var.clusterInfo.private_cluster_config.master_ipv4_cidr_block
+      master_global_access_config {
+        enabled = var.clusterInfo.private_cluster_config.master_global_access_config
+      }
+    }
+  }
+  dynamic master_authorized_networks_config {
+    for_each = (var.clusterInfo.master_authorized_networks_config == null) ? [] : [1]
+    content {
+      gcp_public_cidrs_access_enabled = var.clusterInfo.master_authorized_networks_config.gcp_public_cidrs_access_enabled
+      cidr_blocks {
+        cidr_block = "${google_compute_address.reserved_ngw_public_ip.address}/32"
+      }
+#       cidr_blocks {
+#         cidr_block = module.cloudbuild_private_pool.workerpool_range
+#       }
+    }
+  }
+  ip_allocation_policy {
+    cluster_secondary_range_name = google_compute_subnetwork.gke_subnet.secondary_ip_range[0].range_name
+    services_secondary_range_name = google_compute_subnetwork.gke_subnet.secondary_ip_range[1].range_name
+  }
+  network_policy {
+    enabled = var.clusterInfo.network_policy
+  }
+  workload_identity_config {
+    workload_pool = "${var.project_id}.svc.id.goog"
+  }
+  addons_config {
+    horizontal_pod_autoscaling {
+      disabled = !var.clusterInfo.pod_autoscale
+    }
+
+    gcs_fuse_csi_driver_config {
+      enabled = var.clusterInfo.gcsfuse_csi
+    }
+  }
+
+  authenticator_groups_config {
+    security_group = "gke-security-groups@monojitdatta.altostrat.com"
+  }
+#   depends_on = [module.cloudbuild_private_pool]
+  deletion_protection = false
+}
+
+resource "google_container_node_pool" "worker_pool" {
+  name = var.clusterInfo.nodepool_config[0].name
+  project = var.project_id
+  cluster = google_container_cluster.gke_cluster.id
+  initial_node_count = var.clusterInfo.nodepool_config[0].initial_node
+  node_config {
+    service_account = data.google_service_account.sa.email
+    machine_type = var.clusterInfo.nodepool_config[0].machine_type
+  }
+  autoscaling {
+    min_node_count = var.clusterInfo.nodepool_config[0].min_node
+    max_node_count = var.clusterInfo.nodepool_config[0].max_node
+  }
+  max_pods_per_node = var.clusterInfo.nodepool_config[0].max_pods_per_node
+}
+
+module "cloudbuild_private_pool" {
+  source  = "GoogleCloudPlatform/secure-cicd/google//modules/cloudbuild-private-pool"
+  version = "1.2.1"
+  project_id                = var.project_id
+  network_project_id        = var.project_id
+  location                  = var.projectInfo.region
+  create_cloudbuild_network = true
+  private_pool_vpc_name     = "private-build-pool-vpc"
+  worker_pool_name          = "cloudbuild-private-worker-pool"
+  worker_address            = "10.37.0.0"
+  worker_range_name         = "gke-private-pool-worker-range"
+}
+
 output "lb_public_ip" {
-  value = google_compute_global_address.reserved_lb_public_ip.address
+  value = google_compute_address.reserved_lb_public_ip.address
 }
 
 output "ngw_public_ip" {
   value = google_compute_address.reserved_ngw_public_ip.address
-}
-
-output "opsvm_public_ip" {
-  value = google_compute_address.reserved_opsvm_public_ip.address
 }
 
 output "sql_public_ip" {
