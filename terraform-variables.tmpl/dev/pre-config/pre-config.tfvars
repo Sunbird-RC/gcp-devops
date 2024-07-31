@@ -127,7 +127,20 @@ dbInfo = [
 {
     name = "keycloak"
     instanceName = "functional-registry-pgsql"
-}]
+},
+{
+    name = "credentials"
+    instanceName = "functional-registry-pgsql"
+},
+{
+    name = "credential-schema"
+    instanceName = "functional-registry-pgsql"
+},
+{
+    name = "identity"
+    instanceName = "functional-registry-pgsql"
+}
+]
 
 
 opsVMInfo = {
