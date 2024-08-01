@@ -263,7 +263,6 @@ kubectl get secret keycloak  -o jsonpath="{.data}" | jq -r ".password" | base64 
 ```
 - Goto https://DOMAIN/auth/
 - Username: admin
-- Password: Get the password from the second step
 
 ### Steps to connect to Psql
 - Run the below command in bastion host
