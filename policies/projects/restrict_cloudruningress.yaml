@@ -1,7 +1,0 @@
-name: projects/<PROJECT_ID>/policies/run.allowedIngress
-spec:
-  rules:
-  - values:
-      allowedValues:
-      - "all"
-      

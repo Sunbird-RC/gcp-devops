@@ -1,5 +1,0 @@
-name: projects/<PROJECT_ID>/policies/sql.restrictAuthorizedNetworks
-spec:
-  rules:
-  - enforce: true
-      

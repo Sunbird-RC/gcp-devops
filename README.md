@@ -1,18 +1,10 @@
-# GCP Landing Zone - DCS
+# Sunbird RC 2.0, one-click deployment on GCP
 
 ![dcs-lz](./assets/dcs-lz.png)
 
 ## Introduction
 
-**[TBD]**
-
-## Objective
-
-**[TBD]**
-
-## Scope
-
-**[TBD]**
+Sunbird RC 2.0 is an interoperable and unified registry infrastructure that needs to be established to enable "live," "reusable," and "trustworthy" registries as a "single source of truth" to address the three core issues mentioned. To learn more about Sunbird RC, please visit [SunbirdRC 2.0](https://docs.sunbirdrc.dev/).
 
 ## Deployment Approach
 
@@ -25,14 +17,12 @@ Deployment uses the following tools:
 The entrie Terraform deployment is divided into 3 stages -
 
 - **Pre-Config** stage
-  - Create the Landing Zone for the entie deployment
-  - Deploy all resources and services that create the building blocks for the entire deployment
+  - Create the required infra for RC deployment
 - **Setup** Stage
-  - Deploy the Core infrastructure
+  - Deploy the Core RC services
 - **Post-Config** Stage
-  - Perform all post configurations
-  - Deploy additional resouces for integation and end to end flow
-
+  - Perform all post configurations like realm import and keycloak secret generation
+  
 ### Pre-requisites
 
 - ### [Install the gcloud CLI](https://cloud.google.com/sdk/docs/install)
@@ -66,150 +56,32 @@ The entrie Terraform deployment is divided into 3 stages -
   helm version --client
   ```
 
-- **Cloud Build - [Helm tool builder](https://github.com/GoogleCloudPlatform/cloud-builders-community/tree/master/helm)**
-
-  - This is the helm builder for cloud build
-
-  - Helps automating deployment of applications and other config files on the GKE cluster using Cloud Build
-
-  - Each Cloud Build pipeline script can contain various **helm** commands as the build step
-
-    ```bash
-    # Clone Community Cloud Builder repository
-    git clone https://github.com/GoogleCloudPlatform/cloud-builders-community/tree/master/helm
-    
-    # Build Helm package which would be used inside Cloud Build scripts
-    gcloud builds submit . --config=cloudbuild.yaml
-    ```
-
 ### Workspace - Folder structure
 
-- **dcs (***Root Folder***)**
+- **(***Root Folder***)**
   - **assets**
     - images
     - architetcure diagrams
     - ...(more)
   - **builds**
-    - **apps** - Deploy/Remove all Application sevices
-    - **config** - Deploy/Remove all Configuration components
-    - **infra** - Deploy/Remove all Infrastrcuture components end to end
-  - **deployments -** Store deployment files for all microservices
-    - Nginx **Ingress Controller**
-    - **Balanced Persistent Disk** to host any staeful workloads
-    - **CSI Driver Plugin** for mounting/synching secrets from Secret Manager on GCP onto GKE Pods
-    - IP Masquerading **Config Map** to force all Egress from GKE to route through NAT Gateway IP (*Only needed fo Public GKE Clusters*)
-    - <Additional Configuration components as and when needed>
+    - **apps** - Deploy/Remove all Application services
+    - **infra** - Deploy/Remove all Infrastructure components end to end
+    - **post-setup** - Configure keycloak with realms and configure secrets
+  - **deployments -** Store config files required for deployment
     - **configs**
-      - **ip-masq-cm.yaml**
-        - File to ensure egress from GKE (*public*) clsuter through **Cloud NAT** gateway IP
-        - This is only needed for **Public** GKE clusters; **NOT** needed for *Private* clusters
-      - **nginx-config.yaml**
-        - Configuration file nghinx deployment
-        - Ensures **Nginx Ingress conreoller**:
-          -  is deployed with 3 replicas
-          - creates [Network Endpoint Group](https://cloud.google.com/kubernetes-engine/docs/how-to/standalone-neg) (NEG)
-          - is deployed as a K8s **ClusterIP** service; **NOT** as a *LoadBalancer*
-            - This allows the architecture to save an addtinal Internal *Load Balancer*
-      - **pd-balanced-sc.yaml**
-        - Create Persisten Volume with **Balanced Persistent Disk** on GCP
-      - **provider-gcp-plugin.yaml**
-        - CSI Secret storage driver plugin to mount Secrets onto a volume from Secret Manager; as well as sync with K8s secrets/environment variables
-    - **smoke**
-      - helm chart for deploying **smoke** testing services
-    - **registry**
-      - helm chart for deploying core **registry** services
-        - certificate-api
-        - claim-ms
-        - clickhouse
-        - context-proxy-service
-        - credential-schema
-        - credential
-        - elastic
-        - encryption-service
-        - id-gen-service
-        - identity
-        - kafka
-        - keycloak
-        - metrics
-        - notification-ms
-        - public-key-service
-        - registry
-        - vault
-        - zookeeper
-    - **<Other application specific microservices>**
-    - **values-$ENV**
-      - **Values** yaml files for each microservice acorss all namespaces and across **dev** environment
-      - Passed as argumenst to each **helm chart template**
-- **terraform-scripts**
-- Deployment files for end to end Infrastructure deployment
-  
-- **Pre-config -** Hosts scripts to deploy for all prerequisites of GKE setup
-  
-  - **backend.tf -** setup for storing terraform backend state in GCS. Different GCS buckets for each deployment environment
-    - **pre-config.tf -** terraform deployment of landing zone components
-      - Service Accounts
-      - Networks
-      - Firewall Policies
-      - Artifact Registry
-      - Reserved Public IPs
-      - Cloud SQL for PostgreSQL
-      - Memstore for Redis
-      - Cloud NAT gateway
-  
-  - **variables.tf -** variable values to be passed to the **pre-config.tf** script specific to the deployment environment.
-      - This file will act as a template for actual values to be passed during deployment
-      - *Values will change based on the deployment environment*
-  
-- **setup -** Script for setting up of Core Infrastructure
-  
-  - **backend.tf -** setup for storing terraform backend state in GCS. Different GCS buckets for each deployment environment
-  
-  - **setup.tf -** deployment of GKE cluster
-      - Deploy the Core infrastructure
-        - **GKE** cluster
-        - **System pool** - Nodepool created by default with GKE cluster
-        - **Worker pool** - Created specifcially to host DCS microservices
-  
-  - **variables.tf -** variable values to be passed to the **setup.tf** script specific to the deployment environment
-      - This file will act as a template for actual values to be passed during deployment
-      - *Values will change based on the deployment environment*
-  
-- **post-config -** Script to perform post configurations
-  
-  - **backend.tf -** setup for storing terraform backend state in GCS. Different GCS buckets for each deployment environment
-  
-  - **setup.tf -** deployment of GKE cluster
-      - Nginx **Ingress Controller** 
-      - Global Application **Load Balancer**
-      - K8s **Namespaces**
-        - **smoke** - for smoke testing and health check
-        - **registry** - for hosting all DCS specific micro services
-  
-  - **variables.tf -** variable values to be passed to the **setup.tf** script specific to the deployment environment
-- **terraform-variables**
-  - **dev**
-    - **pre-config**
-      - **backend.config**
-        - GCS path for storing terraform state
-      - **pre-config.tfvars**
-        - Actual values for the variable template defined in **variables.tf** to be passed to **pre-config.tf** 
-    - **setup**
-      - **backend.config**
-        - GCS path for storing terraform state
-      - **setup.tf.tfvars**
-        - Actual values for the variable template defined in **variables.tf** to be passed to **setup.tf** 
-    - **post-config**
-      - **backend.config**
-        - GCS path for storing terraform state
-      - **post-config.tfvars**
-        - Actual values for the variable template defined in **variables.tf** to be passed to **post-config.tf** 
-  - **staging**
-    - <Simalar as **dev**>
-  - **prod**
-    - <Simalar as **dev**>
-- **misc**
-  - Miscellaneous files which are only locally maintained; should not be part of any source code commit ot checkin
-
+      - Store config files required for deployment
+    - **schemas**
+      - Store RC schemas which needs to be mounted to registry
+    - **scripts**
+      - Shell scripts required to deploy services
+  - **terraform-scripts**
+      - Deployment files for end to end Infrastructure deployment
+  - **terraform-variables**
+    - **dev**
+      - **pre-config**
+        - **pre-config.tfvars**
+          - Actual values for the variable template defined in **variables.tf** to be passed to **pre-config.tf** 
+      
 ### Infrastructure Deployment
 
 ![deploy-approach](./assets/deploy-approach.png)
@@ -219,7 +91,6 @@ The entrie Terraform deployment is divided into 3 stages -
 #### Setup CLI environment variables
 
 ```bash
-BASEFOLDERPATH=""
 PROJECT_ID=
 OWNER=
 GSA=$PROJECT_ID-sa@$PROJECT_ID.iam.gserviceaccount.com
@@ -266,37 +137,11 @@ gcloud services enable cloudbuild.googleapis.com
 gcloud services enable sqladmin.googleapis.com
 gcloud services enable redis.googleapis.com
 gcloud services enable secretmanager.googleapis.com
-gcloud.cmd services disable servicenetworking.googleapis.com
-gcloud.cmd services enable servicenetworking.googleapis.com
+gcloud services enable servicenetworking.googleapis.com
 
 gcloud config set compute/region $REGION
 gcloud config set compute/zone $ZONE
 ```
-
-#### Setup Policies, Constraints
-
-```bash
-#Org level
-=============
-cd $BASEFOLDERPATH/policies/organization
-gcloud org-policies set-policy ./policies/project/<policy_file_name> --organization=<org_id>
-
-#Folder level
-===============
-cd $BASEFOLDERPATH/policies/folder
-gcloud org-policies set-policy ./policies/project/<policy_file_name> --folder=<folder_id>
-
-#Project level
-================
-cd $BASEFOLDERPATH/policies/project
-gcloud org-policies set-policy ./policies/project/<policy_file_name> --project=$PROJECT_ID
-```
-
-> > **Note**:
-> >
-> > Some of the Project level policies can be added after the Project setup is done. e.g. *VMExternalIPAccess* policy which can cause impediment to the current Project setup and we might need VMs with **Public IP** in *Lower environments*. But we would like to prevent any further VM with *Public IP* post the setup.
-
-
 
 #### Setup Service Account
 
