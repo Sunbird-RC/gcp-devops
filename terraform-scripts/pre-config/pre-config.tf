@@ -160,7 +160,7 @@ resource "google_sql_database" "db" {
   count      = length(var.dbInfo)
   name       = var.dbInfo[count.index].name
   instance   = var.dbInfo[count.index].instanceName
-  depends_on = [google_sql_database_instance.db_instance]
+  depends_on = [google_sql_database_instance.db_instance, google_sql_user.users]
 }
 
 resource "google_compute_instance" "operations_vm" {
