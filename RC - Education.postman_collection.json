@@ -1,0 +1,741 @@
+{
+	"info": {
+		"_postman_id": "e55439f8-2a7d-4b63-9e81-9cfa559c069b",
+		"name": "RC - Education",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "12605938"
+	},
+	"item": [
+		{
+			"name": "get credential schemas",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Your test name\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.environment.set(\"schema_id\", jsonData[0].schema.id);",
+							"    pm.environment.set(\"schema_version\", jsonData[0].schema.version);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/credential-schema-service/credential-schema?tags=Student",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"credential-schema-service",
+						"credential-schema"
+					],
+					"query": [
+						{
+							"key": "tags",
+							"value": "Student"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create template",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Your test name\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.environment.set(\"template_id\", jsonData.template.templateId);",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"template\": \"<!DOCTYPE html><html lang=\\\"en\\\"><head><meta charset=\\\"UTF-8\\\"><meta name=\\\"viewport\\\" content=\\\"width=device-width,initial-scale=1\\\"><title>Student Certificate</title><style>body{font-family:Arial,sans-serif;margin:0;padding:0;text-align:center;background-color:#d3d3d3}.certificate{border:2px solid gold;border-radius:10px;background-color:#eefeef;padding:20px;width:80%;max-width:800px;margin:50px auto;box-shadow:0 0 10px rgba(0,0,0,.1)}h1{color:#333}.section{margin:20px 0}.signature{margin-top:40px}</style></head><body><div class=\\\"certificate\\\"><h1><u>Study Certificate</u></h1><div class=\\\"section\\\"><p><strong>Student Name:</strong>{{fullName}}</p><p><strong>USN:</strong>{{usn}}</p></div><div class=\\\"section\\\"><p>This is to certify that {{fullName}} has successfully completed the {{department}} program at {{institute}} with a CGPA of {{cgpa}} in {{yop}}.</p></div><div class=\\\"signature\\\"><p>Credentials</p><img src=\\\"{{qr}}\\\"/></div></div></body></html>\",\n    \"schemaId\": \"{{schema_id}}\",\n    \"schemaVersion\": \"{{schema_version}}\",\n    \"type\": \"html\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/credential-schema-service/template",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"credential-schema-service",
+						"template"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update template",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"template\": \"<!DOCTYPE html><html lang=\\\"en\\\"><head><meta charset=\\\"UTF-8\\\"><meta name=\\\"viewport\\\" content=\\\"width=device-width,initial-scale=1\\\"><title>Student Certificate</title><style>body{font-family:Arial,sans-serif;margin:0;padding:0;text-align:center;background-color:#d3d3d3}.certificate{border:2px solid gold;border-radius:10px;background-color:#eefeef;padding:20px;width:80%;max-width:800px;margin:50px auto;box-shadow:0 0 10px rgba(0,0,0,.1)}h1{color:#333}.section{margin:20px 0}.signature{margin-top:40px}</style></head><body><div class=\\\"certificate\\\"><h1><u>Study Certificate</u></h1><div class=\\\"section\\\"><p><strong>Student Name:</strong>{{fullName}}</p><p><strong>USN:</strong>{{usn}}</p></div><div class=\\\"section\\\"><p>This is to certify that {{fullName}} has successfully completed the {{department}} program at {{institute}} with a CGPA of {{cgpa}} in {{yop}}.</p></div><div class=\\\"signature\\\"><p>Credentials</p><img src=\\\"{{qr}}\\\"/></div></div></body></html>\",\n    \"schemaId\": \"{{schema_id}}\",\n    \"schemaVersion\": \"{{schema_version}}\",\n    \"type\": \"html\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/credential-schema-service/template/{{template_id}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"credential-schema-service",
+						"template",
+						"{{template_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get admin token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Your test name\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.environment.set(\"admin_token\", jsonData.access_token);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-Forward-For",
+						"value": "https://registry.dpgongcp.com/auth/",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "registry-frontend",
+							"type": "text"
+						},
+						{
+							"key": "username",
+							"value": "super-admin",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "123",
+							"type": "text"
+						},
+						{
+							"key": "grant_type",
+							"value": "password",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{host}}/auth/realms/sunbird-rc/protocol/openid-connect/token",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"auth",
+						"realms",
+						"sunbird-rc",
+						"protocol",
+						"openid-connect",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Institute admin",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"o2\",\n    \"gender\": \"male\",\n    \"phone\": \"9100100101\",\n    \"email\": \"a2@a.com\",\n    \"state\": \"kar\",\n    \"category\": \"sales\",\n    \"designation\": \"SM\",\n    \"department\": \"sales\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/registry/api/v1/Institute",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"registry",
+						"api",
+						"v1",
+						"Institute"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Institute admin login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Your test name\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.environment.set(\"official_token\", jsonData.access_token);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "registry-frontend",
+							"type": "text"
+						},
+						{
+							"key": "username",
+							"value": "9100100101",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "admin@123",
+							"type": "text"
+						},
+						{
+							"key": "grant_type",
+							"value": "password",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{host}}/auth/realms/sunbird-rc/protocol/openid-connect/token",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"auth",
+						"realms",
+						"sunbird-rc",
+						"protocol",
+						"openid-connect",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Issue Student Certificate",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Your test name\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.environment.set(\"student_osid\", jsonData.result.Student.osid);",
+							"    var req = JSON.parse(pm.request.body);",
+							"    pm.environment.set(\"student_email\", req.email);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{official_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"usn\": \"u-1234\",\n  \"fullName\": \"Tej\",\n  \"dob\": \"1990-07-31\",\n  \"gender\": \"Male\",\n  \"mobile\": \"9100100203\",\n  \"email\": \"tej@gmail.com\",\n  \"institute\": \"AB Institute\",\n  \"department\": \"CSE\",\n  \"semester\": \"6\",\n  \"cgpa\": \"8.5\",\n  \"yop\": \"2014-2015\",\n  \"expiresOn\": \"2026-07-31T11:42:31.301Z\",\n  \"issuedOn\": \"2024-07-31T11:42:31.301Z\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/registry/api/v1/Student",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"registry",
+						"api",
+						"v1",
+						"Student"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Student details by osid",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Your test name\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.environment.set(\"student_email\", jsonData.email);",
+							"",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{official_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/registry/api/v1/Student/{{student_osid}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"registry",
+						"api",
+						"v1",
+						"Student",
+						"{{student_osid}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Student VC",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Your test name\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.environment.set(\"vc\", JSON.stringify(jsonData));",
+							"",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{official_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/vc+ld+json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{host}}/registry/api/v1/Student/{{student_osid}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"registry",
+						"api",
+						"v1",
+						"Student",
+						"{{student_osid}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get public key",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/identity-service/did/resolve/{{did}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"identity-service",
+						"did",
+						"resolve",
+						"{{did}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Student Certificate",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Your test name\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.environment.set(\"did\", jsonData.issuer);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{official_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/pdf",
+						"type": "text"
+					},
+					{
+						"key": "template-id",
+						"value": "{{template_id}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{host}}/registry/api/v1/Student/{{student_osid}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"registry",
+						"api",
+						"v1",
+						"Student",
+						"{{student_osid}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Verify VC",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"DID\": \"{{did}}\",\n    \"payload\": {{vc}}\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/identity-service/utils/verify",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"identity-service",
+						"utils",
+						"verify"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Student login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Your test name\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.environment.set(\"student_token\", jsonData.access_token);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "registry-frontend",
+							"type": "text"
+						},
+						{
+							"key": "username",
+							"value": "{{student_email}}",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "admin@123",
+							"type": "text"
+						},
+						{
+							"key": "grant_type",
+							"value": "password",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{host}}/auth/realms/sunbird-rc/protocol/openid-connect/token",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"auth",
+						"realms",
+						"sunbird-rc",
+						"protocol",
+						"openid-connect",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Student details by student token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Your test name\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.environment.set(\"student_email\", jsonData.email);",
+							"",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{student_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/registry/api/v1/Student",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"registry",
+						"api",
+						"v1",
+						"Student"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Student Certificate by student token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Your test name\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.environment.set(\"did\", jsonData.issuer);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{student_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/pdf",
+						"type": "text"
+					},
+					{
+						"key": "template-id",
+						"value": "{{template_id}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{host}}/registry/api/v1/Student/{{student_osid}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"registry",
+						"api",
+						"v1",
+						"Student",
+						"{{student_osid}}"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
