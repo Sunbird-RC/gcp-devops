@@ -217,7 +217,7 @@ resource "google_secret_manager_secret_iam_binding" "secret_iam_binding" {
 }
 
 resource "google_sql_user" "users" {
-  name     = var.secretInfo.name
+  name     = "registry"
   instance = google_sql_database_instance.db_instance.name
   password = random_password.password.result
 }

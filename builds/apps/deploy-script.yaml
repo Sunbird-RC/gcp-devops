@@ -24,7 +24,7 @@ steps:
   args:
     - -c
     - |
-      bash ./deployments/scripts/ingress-init.sh ${_REGION_}
+      bash ./deployments/scripts/ingress-init.sh ${_REGION_} ${_LB_NAME_}
   waitFor:
     - 'ingress-cluster-admin'
 - name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
@@ -87,7 +87,7 @@ steps:
       cp ./deployments/scripts/registry-init.sh sunbird-rc/sunbird-rc-devops/deploy-as-code/helm/v2/registryAndCredentialling/helm_charts
       cp ./deployments/schemas/* sunbird-rc/sunbird-rc-devops/deploy-as-code/helm/v2/registryAndCredentialling/helm_charts/charts/registry/schemas
       cd sunbird-rc/sunbird-rc-devops/deploy-as-code/helm/v2/registryAndCredentialling/helm_charts
-      sh ./registry-init.sh ${_DOMAIN_} ${_SECRET_NAME_}
+      sh ./registry-init.sh ${_DOMAIN_} ${_SECRET_NAME_} ${_DB_NAME_}
 - name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
   id: 'install-helm-chart'
   entrypoint: 'helm'
@@ -117,6 +117,8 @@ substitutions:
   _EMAIL_ID_: ''
   _SERVICE_ACCOUNT_: ''
   _SECRET_NAME_: 'registry'
+  _DB_NAME_: 'functional-registry-pgsql'
+  _LB_NAME_: 'functional-registry-glb-lb-ip'
 options:
     dynamicSubstitutions: true
     pool:

@@ -4,11 +4,11 @@ keycloak_admin_password=$(openssl rand -hex 12)
 echo -n "$db_pass" | base64 -w 0 | xargs -I '{}' sed -i -E 's@DB_PASSWORD.*@DB_PASSWORD: {}@' values.yaml
 echo -n "$keycloak_admin_password" | base64 -w 0 | xargs -I '{}' sed -i -E 's@KEYCLOAK_ADMIN_PASSWORD:.*@KEYCLOAK_ADMIN_PASSWORD: {}@' values.yaml
 kubectl get secret vault -o jsonpath='{.data}' | jq -r '.token' | xargs -I '{}' sed -i -E 's@VAULT_SECRET_TOKEN:.*@VAULT_SECRET_TOKEN: {}@' values.yaml
-gcloud sql instances describe functional-registry-pgsql --format=json  | jq -r ".ipAddresses[0].ipAddress" | xargs -I '{}' echo -n "postgres://registry:$db_pass@{}:5432/credentials" | base64 -w 0 | xargs -I '{}' sed -i -E 's@CREDENTIALS_DB_URL:.*@CREDENTIALS_DB_URL: {}@' values.yaml
-gcloud sql instances describe functional-registry-pgsql --format=json  | jq -r ".ipAddresses[0].ipAddress" | xargs -I '{}' echo -n "postgres://registry:$db_pass@{}:5432/credential-schema" | base64 -w 0 | xargs -I '{}' sed -i -E 's@CREDENTIAL_SCHEMA_DB_URL:.*@CREDENTIAL_SCHEMA_DB_URL: {}@' values.yaml
-gcloud sql instances describe functional-registry-pgsql --format=json  | jq -r ".ipAddresses[0].ipAddress" | xargs -I '{}' echo -n "postgres://registry:$db_pass@{}:5432/identity" | base64 -w 0 | xargs -I '{}' sed -i -E 's@IDENTITY_DB_URL:.*@IDENTITY_DB_URL: {}@' values.yaml
-gcloud sql instances describe functional-registry-pgsql --format=json  | jq -r ".ipAddresses[0].ipAddress" | xargs -I '{}' sed -i -E 's@host: "10.9.0.7".*@host: {}@' values.yaml
-gcloud sql instances describe functional-registry-pgsql --format=json  | jq -r ".ipAddresses[0].ipAddress" | xargs -I '{}' sed -i -E 's@db:5432@{}:5432@' values.yaml
+gcloud sql instances describe $3 --format=json  | jq -r ".ipAddresses[0].ipAddress" | xargs -I '{}' echo -n "postgres://registry:$db_pass@{}:5432/credentials" | base64 -w 0 | xargs -I '{}' sed -i -E 's@CREDENTIALS_DB_URL:.*@CREDENTIALS_DB_URL: {}@' values.yaml
+gcloud sql instances describe $3 --format=json  | jq -r ".ipAddresses[0].ipAddress" | xargs -I '{}' echo -n "postgres://registry:$db_pass@{}:5432/credential-schema" | base64 -w 0 | xargs -I '{}' sed -i -E 's@CREDENTIAL_SCHEMA_DB_URL:.*@CREDENTIAL_SCHEMA_DB_URL: {}@' values.yaml
+gcloud sql instances describe $3 --format=json  | jq -r ".ipAddresses[0].ipAddress" | xargs -I '{}' echo -n "postgres://registry:$db_pass@{}:5432/identity" | base64 -w 0 | xargs -I '{}' sed -i -E 's@IDENTITY_DB_URL:.*@IDENTITY_DB_URL: {}@' values.yaml
+gcloud sql instances describe $3 --format=json  | jq -r ".ipAddresses[0].ipAddress" | xargs -I '{}' sed -i -E 's@host: "10.9.0.7".*@host: {}@' values.yaml
+gcloud sql instances describe $3 --format=json  | jq -r ".ipAddresses[0].ipAddress" | xargs -I '{}' sed -i -E 's@db:5432@{}:5432@' values.yaml
 sed -i -E 's@http://vault:@http://vault.vault:@' values.yaml
 
 
