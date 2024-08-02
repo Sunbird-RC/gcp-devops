@@ -1,5 +1,5 @@
 apt-get install jq uuid-runtime -y
-db_pass=$(gcloud secrets versions access latest --secret registry)
+db_pass=$(gcloud secrets versions access latest --secret $2)
 keycloak_admin_password=$(openssl rand -hex 12)
 echo -n "$db_pass" | base64 -w 0 | xargs -I '{}' sed -i -E 's@DB_PASSWORD.*@DB_PASSWORD: {}@' values.yaml
 echo -n "$keycloak_admin_password" | base64 -w 0 | xargs -I '{}' sed -i -E 's@KEYCLOAK_ADMIN_PASSWORD:.*@KEYCLOAK_ADMIN_PASSWORD: {}@' values.yaml

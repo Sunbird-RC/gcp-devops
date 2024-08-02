@@ -87,7 +87,7 @@ steps:
       cp ./deployments/scripts/registry-init.sh sunbird-rc/sunbird-rc-devops/deploy-as-code/helm/v2/registryAndCredentialling/helm_charts
       cp ./deployments/schemas/* sunbird-rc/sunbird-rc-devops/deploy-as-code/helm/v2/registryAndCredentialling/helm_charts/charts/registry/schemas
       cd sunbird-rc/sunbird-rc-devops/deploy-as-code/helm/v2/registryAndCredentialling/helm_charts
-      sh ./registry-init.sh ${_DOMAIN_}
+      sh ./registry-init.sh ${_DOMAIN_} ${_SECRET_NAME_}
 - name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
   id: 'install-helm-chart'
   entrypoint: 'helm'
@@ -116,6 +116,7 @@ substitutions:
   _LOG_BUCKET_: ''
   _EMAIL_ID_: ''
   _SERVICE_ACCOUNT_: ''
+  _SECRET_NAME_: 'registry'
 options:
     dynamicSubstitutions: true
     pool:

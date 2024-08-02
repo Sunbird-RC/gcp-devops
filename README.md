@@ -1,6 +1,6 @@
 # Sunbird RC 2.0, one-click deployment on GCP
 
-![dcs-lz](./assets/dcs-lz.png)
+![dcs-lz](./assets/arch.png)
 
 ## Introduction
 
@@ -216,7 +216,7 @@ _REGION_="$REGION",_LOG_BUCKET_=$PROJECT_ID-tfs-stg,_EMAIL_ID_=$EMAIL_ID,_DOMAIN
 /*
 gcloud builds submit --config="./builds/apps/destroy-script.yaml" \
 --region=$REGION --project=$PROJECT_ID --substitutions=_PROJECT_ID_=$PROJECT_ID,\
-_REGION_="$REGION",_LOG_BUCKET_=$PROJECT_ID-tfs-stg,_EMAIL_ID_=$EMAIL_ID,_DOMAIN_=$DOMAIN,_SERVICE_ACCOUNT_=$SERVICE_ACCOUNT
+_REGION_="$REGION",_LOG_BUCKET_=$PROJECT_ID-tfs-stg,_SERVICE_ACCOUNT_=$SERVICE_ACCOUNT
 */
 ```
 

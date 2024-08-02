@@ -301,19 +301,19 @@ resource "google_container_node_pool" "worker_pool" {
   }
   max_pods_per_node = var.clusterInfo.nodepool_config[0].max_pods_per_node
 }
-
-module "cloudbuild_private_pool" {
-  source  = "GoogleCloudPlatform/secure-cicd/google//modules/cloudbuild-private-pool"
-  version = "1.2.1"
-  project_id                = var.project_id
-  network_project_id        = var.project_id
-  location                  = var.projectInfo.region
-  create_cloudbuild_network = true
-  private_pool_vpc_name     = "private-build-pool-vpc"
-  worker_pool_name          = "cloudbuild-private-worker-pool"
-  worker_address            = "10.37.0.0"
-  worker_range_name         = "gke-private-pool-worker-range"
-}
+#
+# module "cloudbuild_private_pool" {
+#   source  = "GoogleCloudPlatform/secure-cicd/google//modules/cloudbuild-private-pool"
+#   version = "1.2.1"
+#   project_id                = var.project_id
+#   network_project_id        = var.project_id
+#   location                  = var.projectInfo.region
+#   create_cloudbuild_network = true
+#   private_pool_vpc_name     = "private-build-pool-vpc"
+#   worker_pool_name          = "cloudbuild-private-worker-pool"
+#   worker_address            = "10.37.0.0"
+#   worker_range_name         = "gke-private-pool-worker-range"
+# }
 
 output "lb_public_ip" {
   value = google_compute_address.reserved_lb_public_ip.address
