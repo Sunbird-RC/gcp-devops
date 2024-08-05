@@ -111,7 +111,7 @@ artifactRegistryInfo = {
 
 sqlInfo = {    
     instanceName = "functional-registry-pgsql"
-    version = "POSTGRES_15"
+    version = "POSTGRES_16"
     settings = {
         tier = "db-custom-2-8192"
         ipv4_enabled = false
