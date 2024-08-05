@@ -319,11 +319,7 @@ output "lb_public_ip" {
   value = google_compute_address.reserved_lb_public_ip.address
 }
 
-output "ngw_public_ip" {
-  value = google_compute_address.reserved_ngw_public_ip.address
-}
-
-output "sql_public_ip" {
+output "sql_private_ip" {
   value = google_sql_database_instance.db_instance.ip_address.0.ip_address
 }
 

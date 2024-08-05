@@ -191,8 +191,7 @@ Apply complete! Resources: 36 added, 0 changed, 0 destroyed.
 Outputs:
 
 lb_public_ip = "**.93.6.**"
-ngw_public_ip = "**.200.133.**"
-sql_public_ip = "**.125.196.**"
+sql_private_ip = "**.125.196.**"
 ```
 
 _**Before moving to the next step, you need to create domain/sub-domain and create a DNS `A` type record pointing to `lb_public_ip`**_
