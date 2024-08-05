@@ -140,6 +140,12 @@
 			"request": {
 				"method": "POST",
 				"header": [
+					{
+						"key": "X-Forward-For",
+						"value": "https://registry.dpgongcp.com/auth/",
+						"type": "text",
+						"disabled": true
+					}
 				],
 				"body": {
 					"mode": "urlencoded",
@@ -633,11 +639,6 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Your test name\", function () {",
-							"    var jsonData = pm.response.json();",
-							"    pm.environment.set(\"student_email\", jsonData.email);",
-							"",
-							"});",
 							""
 						],
 						"type": "text/javascript",
@@ -680,10 +681,6 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Your test name\", function () {",
-							"    var jsonData = pm.response.json();",
-							"    pm.environment.set(\"did\", jsonData.issuer);",
-							"});",
 							""
 						],
 						"type": "text/javascript",
