@@ -42,5 +42,5 @@ substitutions:
   _SERVICE_ACCOUNT_: ''
 options:
   dynamicSubstitutions: true
-  pool:
-    name: 'projects/${_PROJECT_ID_}/locations/${_REGION_}/workerPools/cloudbuild-private-worker-pool'
+#  pool:
+#    name: 'projects/${_PROJECT_ID_}/locations/${_REGION_}/workerPools/cloudbuild-private-worker-pool'

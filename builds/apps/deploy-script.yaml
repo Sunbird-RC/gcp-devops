@@ -121,5 +121,5 @@ substitutions:
   _LB_NAME_: 'functional-registry-glb-lb-ip'
 options:
     dynamicSubstitutions: true
-    pool:
-      name: 'projects/${_PROJECT_ID_}/locations/${_REGION_}/workerPools/cloudbuild-private-worker-pool'
+#    pool:
+#      name: 'projects/${_PROJECT_ID_}/locations/${_REGION_}/workerPools/cloudbuild-private-worker-pool'
