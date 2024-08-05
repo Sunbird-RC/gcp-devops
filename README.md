@@ -173,13 +173,13 @@ cd $BASEFOLDERPATH
 # One click of deployment of infrastructure
 gcloud builds submit --config="./builds/infra/deploy-script.yaml" \
 --project=$PROJECT_ID --substitutions=_PROJECT_ID_=$PROJECT_ID,\
-_SERVICE_ACCOUNT_=$SERVICE_ACCOUNT,_LOG_BUCKET_=$PROJECT_ID-tfs-stg
+_SERVICE_ACCOUNT_=$GSA,_LOG_BUCKET_=$PROJECT_ID-tfs-stg
 
 # Remove/Destroy infrastructure
 /*
 gcloud builds submit --config="./builds/infra/destroy-script.yaml" \
 ---project=$PROJECT_ID --substitutions=_PROJECT_ID_=$PROJECT_ID,\
-_SERVICE_ACCOUNT_=$SERVICE_ACCOUNT,_LOG_BUCKET_=$PROJECT_ID-tfs-stg
+_SERVICE_ACCOUNT_=$GSA,_LOG_BUCKET_=$PROJECT_ID-tfs-stg
 */
 ```
 
@@ -209,13 +209,13 @@ cd $BASEFOLDERPATH
 # One click of deployment of services
 gcloud builds submit --config="./builds/apps/deploy-script.yaml" \
 --region=$REGION --project=$PROJECT_ID --substitutions=_PROJECT_ID_=$PROJECT_ID,\
-_REGION_="$REGION",_LOG_BUCKET_=$PROJECT_ID-tfs-stg,_EMAIL_ID_=$EMAIL_ID,_DOMAIN_=$DOMAIN,_SERVICE_ACCOUNT_=$SERVICE_ACCOUNT
+_REGION_="$REGION",_LOG_BUCKET_=$PROJECT_ID-tfs-stg,_EMAIL_ID_=$EMAIL_ID,_DOMAIN_=$DOMAIN,_SERVICE_ACCOUNT_=$GSA
 
 # Remove/Destroy 
 /*
 gcloud builds submit --config="./builds/apps/destroy-script.yaml" \
 --region=$REGION --project=$PROJECT_ID --substitutions=_PROJECT_ID_=$PROJECT_ID,\
-_REGION_="$REGION",_LOG_BUCKET_=$PROJECT_ID-tfs-stg,_SERVICE_ACCOUNT_=$SERVICE_ACCOUNT
+_REGION_="$REGION",_LOG_BUCKET_=$PROJECT_ID-tfs-stg,_SERVICE_ACCOUNT_=$GSA
 */
 ```
 
@@ -250,7 +250,7 @@ cd $BASEFOLDERPATH
 # Post setup configuring keycloak service
 gcloud builds submit --config="./builds/post-setup/deploy-script.yaml" \
 --region=$REGION --project=$PROJECT_ID --substitutions=_PROJECT_ID_=$PROJECT_ID,\
-_REGION_="$REGION",_LOG_BUCKET_=$PROJECT_ID-tfs-stg,_DOMAIN_=$DOMAIN,_SERVICE_ACCOUNT_=$SERVICE_ACCOUNT
+_REGION_="$REGION",_LOG_BUCKET_=$PROJECT_ID-tfs-stg,_DOMAIN_=$DOMAIN,_SERVICE_ACCOUNT_=$GSA
 
 ```
 
