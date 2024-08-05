@@ -141,8 +141,8 @@
 				"method": "POST",
 				"header": [
 					{
-						"key": "X-Forward-For",
-						"value": "https://registry.dpgongcp.com/auth/",
+						"key": "",
+						"value": "",
 						"type": "text",
 						"disabled": true
 					}
