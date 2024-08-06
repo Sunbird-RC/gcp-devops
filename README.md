@@ -233,18 +233,6 @@ _Please note that issuing of ssl certificate and DNS mapping might take some tim
 
 _Only if you're able to access the keycloak UI, proceed to next steps_
 
-#### Connect to the Cluster through bastion host
-
-```bash
-gcloud compute instances list
-gcloud compute ssh functional-registry-ops-vm --zone=$ZONE
-gcloud container clusters get-credentials functional-registry-cluster --project=$PROJECT_ID --region=$REGION
-
-kubectl get nodes
-kubectl get pods -n registry
-kubectl get svc -n ingress-nginx
-kubectl get pods -n vault
-```
 
 
 #### Post-Config
@@ -264,13 +252,26 @@ _REGION_="$REGION",_LOG_BUCKET_=$PROJECT_ID-tfs-stg,_DOMAIN_=$DOMAIN,_SERVICE_AC
 ```
 
 
-### Steps to access keycloak UI
+#### Connect to the Cluster through bastion host
+
+```bash
+gcloud compute instances list
+gcloud compute ssh functional-registry-ops-vm --zone=$ZONE
+gcloud container clusters get-credentials functional-registry-cluster --project=$PROJECT_ID --region=$REGION
+
+kubectl get nodes
+kubectl get pods -n registry
+kubectl get svc -n ingress-nginx
+kubectl get pods -n vault
+```
+
+
+### Steps to access keycloak password
 - Run the below command in bastion host to get the keycloak secret,
 ```bash
 kubectl get secret keycloak  -o jsonpath="{.data}" | jq -r ".password" | base64 --decode
 ```
-- Goto https://DOMAIN/auth/
-- Username: admin
+
 
 ### Steps to connect to Psql
 - Run the below command in bastion host
