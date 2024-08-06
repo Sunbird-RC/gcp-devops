@@ -154,10 +154,13 @@ gcloud projects add-iam-policy-binding $PROJECT_ID --member=serviceAccount:$GSA 
 #### Deploy Infrastructure using Terraform
 
 #### Teraform State management
+####The PROJECT_ID needs to be updated in the command below.
 
 ```bash
 # Maintains the Terraform state for deployment
 gcloud storage buckets create gs://$PROJECT_ID-tfs-stg --project=$PROJECT_ID --default-storage-class=STANDARD --location=$REGION --uniform-bucket-level-access
+
+#### The PROJECT_ID needs to be updated in the command below.
 
 # List all Storage buckets in the project to check the creation of the new one
 gcloud storage buckets list --project=$PROJECT_ID
@@ -169,13 +172,14 @@ gcloud storage buckets list --project=$PROJECT_ID
 
 ```bash
 cd $BASEFOLDERPATH
-
+#### The PROJECT_ID,GSA needs to be updated in the command below.
 # One click of deployment of infrastructure
 gcloud builds submit --config="./builds/infra/deploy-script.yaml" \
 --project=$PROJECT_ID --substitutions=_PROJECT_ID_=$PROJECT_ID,\
 _SERVICE_ACCOUNT_=$GSA,_LOG_BUCKET_=$PROJECT_ID-tfs-stg
 
 # Remove/Destroy infrastructure
+#### The PROJECT_ID,GSA needs to be updated in the command below.
 /*
 gcloud builds submit --config="./builds/infra/destroy-script.yaml" \
 ---project=$PROJECT_ID --substitutions=_PROJECT_ID_=$PROJECT_ID,\
@@ -207,11 +211,15 @@ _`deployments/schemas/*` contains sample schemas which will be mounted to regist
 cd $BASEFOLDERPATH
 
 # One click of deployment of services
+#### The REGION,PROJECT_ID,GSA,EMAIL_ID,DOMAIN needs to be updated in the command below.
+
 gcloud builds submit --config="./builds/apps/deploy-script.yaml" \
 --region=$REGION --project=$PROJECT_ID --substitutions=_PROJECT_ID_=$PROJECT_ID,\
 _REGION_="$REGION",_LOG_BUCKET_=$PROJECT_ID-tfs-stg,_EMAIL_ID_=$EMAIL_ID,_DOMAIN_=$DOMAIN,_SERVICE_ACCOUNT_=$GSA
 
-# Remove/Destroy 
+# Remove/Destroy
+#### The REGION,PROJECT_ID,GSA,EMAIL_ID,DOMAIN needs to be updated in the command below.
+
 /*
 gcloud builds submit --config="./builds/apps/destroy-script.yaml" \
 --region=$REGION --project=$PROJECT_ID --substitutions=_PROJECT_ID_=$PROJECT_ID,\
@@ -246,6 +254,7 @@ kubectl get pods -n vault
 ```bash
 cd $BASEFOLDERPATH
 
+#### The REGION,PROJECT_ID,GSA,DOMAIN needs to be updated in the command below.
 
 # Post setup configuring keycloak service
 gcloud builds submit --config="./builds/post-setup/deploy-script.yaml" \
