@@ -301,6 +301,7 @@ A sample postman collection (along with env config) has been provided in `postma
 Before executing the APIs a super admin user needs to be created in keycloak. Follow the below steps to create the user in keycloak:
 - Login to keycloak, https://DOMAIN/auth/admin/master/console/#/realms/sunbird-rc
 - To access keycloak admin password, follow the steps provided earlier
+- change the realm to sunbirdRC
 - Goto `Users` section and click on `Add User`
 - Create user with username: super-admin and click Save
 - Goto `Credentials` section and set password `Ex: 123` with `Temporary` switch turned off
