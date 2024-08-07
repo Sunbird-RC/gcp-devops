@@ -301,6 +301,10 @@ resource "google_container_node_pool" "worker_pool" {
     max_node_count = var.clusterInfo.nodepool_config[0].max_node
   }
   max_pods_per_node = var.clusterInfo.nodepool_config[0].max_pods_per_node
+  management {
+    auto_repair = false
+    auto_upgrade = false
+  }
 }
 #
 # module "cloudbuild_private_pool" {
