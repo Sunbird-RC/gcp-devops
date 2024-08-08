@@ -283,7 +283,7 @@ resource "google_container_cluster" "gke_cluster" {
   authenticator_groups_config {
     security_group = "gke-security-groups@monojitdatta.altostrat.com"
   }
-#   depends_on = [module.cloudbuild_private_pool]
+  depends_on = [google_sql_database.db]
   deletion_protection = false
 }
 
