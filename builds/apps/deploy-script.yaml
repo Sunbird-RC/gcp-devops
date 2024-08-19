@@ -1,17 +1,7 @@
 steps:
-- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  id: 'Authorize Cloud Build'
-  entrypoint: 'bash'
-  args:
-    - -c
-    - |
-      apt-get install dnsutils jq -y &&
-      cloudbuild_external_ip=$(dig @resolver4.opendns.com myip.opendns.com +short) &&
-      old_cidr=$(gcloud container clusters describe ${_CLUSTER_NAME_} --zone=${_REGION_} --format json | jq -r '.masterAuthorizedNetworksConfig.cidrBlocks[] | .cidrBlock' | tr '\n' ',') &&
-      gcloud container clusters update ${_CLUSTER_NAME_} --zone=${_REGION_} --enable-master-authorized-networks --master-authorized-networks "$old_cidr$cloudbuild_external_ip/32"
 - name: 'gcr.io/cloud-builders/gcloud'
   id: 'get-credentials'
-  args: ['container', 'clusters', 'get-credentials', '${_CLUSTER_NAME_}', '--project=${_PROJECT_ID_}', '--region=${_REGION_}']
+  args: ['container', 'clusters', 'get-credentials', '${_CLUSTER_NAME_}', '--project=${_PROJECT_ID_}', '--region=${_REGION_}', '--internal-ip']
 - name: 'gcr.io/cloud-builders/kubectl'
   id: 'ingress-cluster-admin'
   entrypoint: 'kubectl'
@@ -94,17 +84,6 @@ steps:
   dir: 'sunbird-rc/sunbird-rc-devops/deploy-as-code/helm/v2/registryAndCredentialling'
   args: ['upgrade', '--install', '-n=registry', 'registry', 'helm_charts', '--create-namespace', '--set', 'global.host=${_DOMAIN_}', '--set', 'global.registry.search_provider="dev.sunbirdrc.registry.service.NativeSearchService"', '--set', 'global.registry.keycloak_user_set_password=true', '--set', 'global.database.user=registry', '--set-json', 'registry.ingress.annotations={"kubernetes.io/ingress.class": "nginx", "nginx.ingress.kubernetes.io/rewrite-target": "/$2", "cert-manager.io/issuer": "letsencrypt", "nginx.ingress.kubernetes.io/force-ssl-redirect": "true"}', '--set-json', 'registry.ingress.tls=[{"hosts": ["${_DOMAIN_}"], "secretName": "registry-tls"}]' ]
   waitFor: 'helm-preconfig'
-- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  id: 'Remove worker cidr'
-  entrypoint: 'bash'
-  waitFor: 'install-helm-chart'
-  args:
-    - -c
-    - |
-      apt-get install dnsutils jq -y &&
-      cloudbuild_external_ip=$(dig @resolver4.opendns.com myip.opendns.com +short) &&
-      old_cidr=$(gcloud container clusters describe ${_CLUSTER_NAME_} --zone=${_REGION_} --format json | jq 'del(.masterAuthorizedNetworksConfig.cidrBlocks[] | select(.cidrBlock == "'"$cloudbuild_external_ip/32"'"))' | jq -r '.masterAuthorizedNetworksConfig.cidrBlocks[] | .cidrBlock' | tr '\n' ','  | sed 's/,$//' ) &&
-      gcloud container clusters update ${_CLUSTER_NAME_} --zone=${_REGION_} --enable-master-authorized-networks --master-authorized-networks "$old_cidr"
 tags: ['cloud-builders-community']
 serviceAccount: "projects/${_PROJECT_ID_}/serviceAccounts/${_SERVICE_ACCOUNT_}"
 logsBucket: "gs://${_LOG_BUCKET_}"
@@ -117,9 +96,10 @@ substitutions:
   _EMAIL_ID_: ''
   _SERVICE_ACCOUNT_: ''
   _SECRET_NAME_: 'registry'
+  _NAME_: 'functional-registry'
   _DB_NAME_: 'functional-registry-pgsql'
   _LB_NAME_: 'functional-registry-glb-lb-ip'
 options:
     dynamicSubstitutions: true
-#    pool:
-#      name: 'projects/${_PROJECT_ID_}/locations/${_REGION_}/workerPools/cloudbuild-private-worker-pool'
+    pool:
+      name: 'projects/${_PROJECT_ID_}/locations/${_REGION_}/workerPools/${_NAME_}-cloudbuild-private-worker-pool'

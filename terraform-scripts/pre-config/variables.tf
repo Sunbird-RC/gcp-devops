@@ -10,9 +10,11 @@ variable "service_account" {
 variable "projectInfo" {
   type = object({
     region  = string
+    name    = string
   })
   default = {
     region  = ""
+    name    = ""
   }
 }
 
@@ -367,5 +369,23 @@ variable "clusterInfo" {
         max_pods_per_node = 50
         min_node = 1
       }]
+  }
+}
+
+variable "vpnInfo" {
+  type = object({
+    gateway_1_asn   = number
+    gateway_2_asn   = number
+    bgp_range_1 = string
+    bgp_range_2 = string
+    workerpool_range = string
+
+  })
+  default = {
+    gateway_1_asn = 65007
+    gateway_2_asn = 65008
+    bgp_range_1   = "169.254.7.0/30"
+    bgp_range_2   = "169.254.8.0/30"
+    workerpool_range = "10.37.0.0/16"
   }
 }

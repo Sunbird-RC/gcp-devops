@@ -6,7 +6,7 @@ provider "google" {
 provider "google-beta" {
   project = var.project_id
   region  = var.projectInfo.region
-  version = "~>4"
+  version = "5.41.0"
 }
 
 data "google_service_account" "sa" {
@@ -255,9 +255,9 @@ resource "google_container_cluster" "gke_cluster" {
       cidr_blocks {
         cidr_block = "${google_compute_address.reserved_ngw_public_ip.address}/32"
       }
-#       cidr_blocks {
-#         cidr_block = module.cloudbuild_private_pool.workerpool_range
-#       }
+      cidr_blocks {
+        cidr_block = module.cloudbuild_private_pool.workerpool_range
+      }
     }
   }
   ip_allocation_policy {
@@ -303,19 +303,107 @@ resource "google_container_node_pool" "worker_pool" {
     auto_upgrade = false
   }
 }
-#
-# module "cloudbuild_private_pool" {
-#   source  = "GoogleCloudPlatform/secure-cicd/google//modules/cloudbuild-private-pool"
-#   version = "1.2.1"
-#   project_id                = var.project_id
-#   network_project_id        = var.project_id
-#   location                  = var.projectInfo.region
-#   create_cloudbuild_network = true
-#   private_pool_vpc_name     = "private-build-pool-vpc"
-#   worker_pool_name          = "cloudbuild-private-worker-pool"
-#   worker_address            = "10.37.0.0"
-#   worker_range_name         = "gke-private-pool-worker-range"
-# }
+
+module "cloudbuild_private_pool" {
+  source                    = "GoogleCloudPlatform/secure-cicd/google//modules/cloudbuild-private-pool"
+  version                   = "1.2.1"
+  project_id                = var.project_id
+  network_project_id        = var.project_id
+  location                  = var.projectInfo.region
+  create_cloudbuild_network = true
+  private_pool_vpc_name     = "${var.projectInfo.name}-private-build-pool-vpc"
+  worker_pool_name          = "${var.projectInfo.name}-cloudbuild-private-worker-pool"
+  worker_address            = var.vpnInfo.workerpool_range
+  worker_range_name         = "gke-private-pool-worker-range"
+}
+
+module "vpn_ha_1" {
+  source     = "terraform-google-modules/vpn/google//modules/vpn_ha"
+  version    = "4.0.1"
+  project_id = var.project_id
+  region     = var.projectInfo.region
+  network    = "${var.projectInfo.name}-private-build-pool-vpc"
+  name       = "${var.projectInfo.name}-cloudbuild-to-${google_compute_network.vpc.name}"
+  router_asn = var.vpnInfo.gateway_1_asn
+  router_advertise_config = {
+    ip_ranges = {
+      (module.cloudbuild_private_pool.workerpool_range) = "Cloud Build Private Pool"
+    }
+    mode = "CUSTOM"
+    groups = ["ALL_SUBNETS"]
+  }
+  peer_gcp_gateway = module.vpn_ha_2.self_link
+  tunnels = {
+    remote-0 = {
+      bgp_peer = {
+        address = cidrhost(var.vpnInfo.bgp_range_1, 2) # 169.254.1.2
+        asn = var.vpnInfo.gateway_2_asn
+      }
+      bgp_peer_options                = null
+      bgp_session_range = "${cidrhost(var.vpnInfo.bgp_range_1, 1)}/30" # 169.254.1.1/30
+      ike_version                     = 2
+      vpn_gateway_interface           = 0
+      peer_external_gateway_interface = null
+      shared_secret                   = ""
+    }
+    remote-1 = {
+      bgp_peer = {
+        address = cidrhost(var.vpnInfo.bgp_range_2, 2) #"169.254.2.2"
+        asn = var.vpnInfo.gateway_2_asn
+      }
+      bgp_peer_options                = null
+      bgp_session_range = "${cidrhost(var.vpnInfo.bgp_range_2, 1)}/30" # 169.254.2.1/30
+      ike_version                     = 2
+      vpn_gateway_interface           = 1
+      peer_external_gateway_interface = null
+      shared_secret                   = ""
+    }
+  }
+}
+
+module "vpn_ha_2" {
+  source     = "terraform-google-modules/vpn/google//modules/vpn_ha"
+  version    = "4.0.1"
+  project_id = var.project_id
+  region     = var.projectInfo.region
+  network    = google_compute_network.vpc.name
+  name       = "${var.projectInfo.name}-${google_compute_network.vpc.name}-to-cloudbuild"
+  router_asn = var.vpnInfo.gateway_2_asn
+  router_advertise_config = {
+    ip_ranges = {
+      (var.clusterInfo.private_cluster_config.master_ipv4_cidr_block) = "GKE Cluster CIDR"
+    }
+    mode = "CUSTOM"
+    groups = ["ALL_SUBNETS"]
+  }
+  peer_gcp_gateway = module.vpn_ha_1.self_link
+  tunnels = {
+    remote-0 = {
+      bgp_peer = {
+        address = cidrhost(var.vpnInfo.bgp_range_1, 1) # 169.254.1.1
+        asn = var.vpnInfo.gateway_1_asn
+      }
+      bgp_peer_options                = null
+      bgp_session_range = "${cidrhost(var.vpnInfo.bgp_range_1, 2)}/30" # 169.254.1.2/30
+      ike_version                     = 2
+      vpn_gateway_interface           = 0
+      peer_external_gateway_interface = null
+      shared_secret                   = module.vpn_ha_1.random_secret
+    }
+    remote-1 = {
+      bgp_peer = {
+        address = cidrhost(var.vpnInfo.bgp_range_2, 1) # 169.254.2.1
+        asn = var.vpnInfo.gateway_1_asn
+      }
+      bgp_peer_options                = null
+      bgp_session_range = "${cidrhost(var.vpnInfo.bgp_range_2, 2)}/30" # 169.254.2.2/30
+      ike_version                     = 2
+      vpn_gateway_interface           = 1
+      peer_external_gateway_interface = null
+      shared_secret                   = module.vpn_ha_1.random_secret
+    }
+  }
+}
 
 output "lb_public_ip" {
   value = google_compute_address.reserved_lb_public_ip.address
