@@ -386,6 +386,6 @@ variable "vpnInfo" {
     gateway_2_asn = 65008
     bgp_range_1   = "169.254.7.0/30"
     bgp_range_2   = "169.254.8.0/30"
-    workerpool_range = "10.37.0.0/16"
+    workerpool_range = "10.37.0.0"
   }
 }
