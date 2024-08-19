@@ -314,7 +314,7 @@ module "cloudbuild_private_pool" {
   private_pool_vpc_name     = "${var.projectInfo.name}-private-build-pool-vpc"
   worker_pool_name          = "${var.projectInfo.name}-cloudbuild-private-worker-pool"
   worker_address            = var.vpnInfo.workerpool_range
-  worker_range_name         = "gke-private-pool-worker-range"
+  worker_range_name         = "${var.projectInfo.name}-private-pool-worker-range"
 }
 
 module "vpn_ha_1" {
