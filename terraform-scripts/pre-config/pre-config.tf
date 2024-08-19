@@ -3,10 +3,18 @@ provider "google" {
   region  = var.projectInfo.region
 }
 
+terraform {
+  required_providers {
+    google-beta = {
+      source = "hashicorp/google-beta"
+      version = "~>4"
+    }
+  }
+}
+
 provider "google-beta" {
   project = var.project_id
   region  = var.projectInfo.region
-  version = "5.41.0"
 }
 
 data "google_service_account" "sa" {
@@ -319,7 +327,7 @@ module "cloudbuild_private_pool" {
 
 module "vpn_ha_1" {
   source     = "terraform-google-modules/vpn/google//modules/vpn_ha"
-  version    = "4.0.1"
+  version    = "3.1.1"
   project_id = var.project_id
   region     = var.projectInfo.region
   network    = "${var.projectInfo.name}-private-build-pool-vpc"
@@ -363,7 +371,7 @@ module "vpn_ha_1" {
 
 module "vpn_ha_2" {
   source     = "terraform-google-modules/vpn/google//modules/vpn_ha"
-  version    = "4.0.1"
+  version    = "3.1.1"
   project_id = var.project_id
   region     = var.projectInfo.region
   network    = google_compute_network.vpc.name
