@@ -345,7 +345,7 @@ module "vpn_ha_1" {
   project_id = var.project_id
   region     = var.projectInfo.region
   network    = google_compute_network.private_pool_vpc.name
-  name       = "${var.projectInfo.name}-cloudbuild-to-${google_compute_network.vpc.name}"
+  name       = "ha-cloudbuild-to-${google_compute_network.vpc.name}"
   router_asn = var.vpnInfo.gateway_1_asn
   router_advertise_config = {
     ip_ranges = {
@@ -389,7 +389,7 @@ module "vpn_ha_2" {
   project_id = var.project_id
   region     = var.projectInfo.region
   network    = google_compute_network.vpc.name
-  name       = "${var.projectInfo.name}-${google_compute_network.vpc.name}-to-cloudbuild"
+  name       = "${google_compute_network.vpc.name}-to-cloudbuild"
   router_asn = var.vpnInfo.gateway_2_asn
   router_advertise_config = {
     ip_ranges = {
