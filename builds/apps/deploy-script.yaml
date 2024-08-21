@@ -84,6 +84,13 @@ steps:
   dir: 'sunbird-rc/sunbird-rc-devops/deploy-as-code/helm/v2/registryAndCredentialling'
   args: ['upgrade', '--install', '-n=registry', 'registry', 'helm_charts', '--create-namespace', '--set', 'global.host=${_DOMAIN_}', '--set', 'global.registry.search_provider="dev.sunbirdrc.registry.service.NativeSearchService"', '--set', 'global.registry.keycloak_user_set_password=true', '--set', 'global.database.user=registry', '--set-json', 'registry.ingress.annotations={"kubernetes.io/ingress.class": "nginx", "nginx.ingress.kubernetes.io/rewrite-target": "/$2", "cert-manager.io/issuer": "letsencrypt", "nginx.ingress.kubernetes.io/force-ssl-redirect": "true"}', '--set-json', 'registry.ingress.tls=[{"hosts": ["${_DOMAIN_}"], "secretName": "registry-tls"}]' ]
   waitFor: 'helm-preconfig'
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  id: 'keycloak-setup'
+  entrypoint: 'bash'
+  waitFor: 'install-helm-chart'
+  args:
+    - -c
+    - bash deployments/scripts/keycloak-init.sh ${_DOMAIN_}
 tags: ['cloud-builders-community']
 serviceAccount: "projects/${_PROJECT_ID_}/serviceAccounts/${_SERVICE_ACCOUNT_}"
 logsBucket: "gs://${_LOG_BUCKET_}"

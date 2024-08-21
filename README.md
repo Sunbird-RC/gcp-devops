@@ -235,23 +235,6 @@ _Only if you're able to access the keycloak UI, proceed to next steps_
 
 
 
-#### Post-Config
-
-##### Configure Landing Zone
-
-```bash
-cd $BASEFOLDERPATH
-
-#### The REGION,PROJECT_ID,GSA,DOMAIN needs to be updated in the command below.
-
-# Post setup configuring keycloak service
-gcloud builds submit --config="./builds/post-setup/deploy-script.yaml" \
---region=$REGION --project=$PROJECT_ID --substitutions=_PROJECT_ID_=$PROJECT_ID,\
-_REGION_="$REGION",_LOG_BUCKET_=$PROJECT_ID-tfs-stg,_DOMAIN_=$DOMAIN,_SERVICE_ACCOUNT_=$GSA
-
-```
-
-
 #### Connect to the Cluster through bastion host
 
 ```bash

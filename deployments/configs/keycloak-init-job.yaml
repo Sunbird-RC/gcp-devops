@@ -1,0 +1,42 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: keycloak-init
+spec:
+  template:
+    metadata:
+      name: keycloak-init
+    spec:
+      containers:
+        - name: init
+          image: alpine:latest
+          command: ["sh", "-c"]
+          args:
+            - |
+              apk --update add curl
+              apk --update add wget
+              apk --update add jq
+              apk --update add moreutils
+              jq --version
+              wget -O realm-export.json https://raw.githubusercontent.com/Sunbird-RC/sunbird-rc-core/main/imports/realm-export.json
+              admin_token=$(curl --location "http://registry-keycloak-service:8080/auth/realms/master/protocol/openid-connect/token" \
+               --header "Content-Type: application/x-www-form-urlencoded" \
+               --data-urlencode "client_id=admin-cli" \
+               --data-urlencode "username=admin" \
+               --data-urlencode "password=$ADMIN_PASSWORD" \
+               --data-urlencode "grant_type=password" |  jq -r ".access_token")
+              echo -n "$ADMIN_SECRET" | xargs -I '{}' sed -i -E 's@"secret": ".*",@"secret": "{}",@' realm-export.json
+              jq --arg domain https://DOMAIN_VALUE/auth '.attributes += {"frontendUrl": $domain}'  realm-export.json | sponge realm-export.json
+              curl --location "http://registry-keycloak-service:8080/auth/admin/realms" --header "Authorization: Bearer ${admin_token}" --data "@./realm-export.json" --header 'Content-Type: application/json'
+          env:
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rc-secret
+                  key: KEYCLOAK_ADMIN_PASSWORD
+            - name: ADMIN_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: rc-secret
+                  key: KEYCLOAK_ADMIN_CLIENT_SECRET
+      restartPolicy: Never
