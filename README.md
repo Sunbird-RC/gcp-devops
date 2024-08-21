@@ -14,14 +14,12 @@ Deployment uses the following tools:
 - **Helm chart** - Application/Microservices deployment
 - **Cloud Build** - YAML scripts which acts as a wrapper around Terraform Deployment scripts
 
-The entrie Terraform deployment is divided into 3 stages -
+The entire Terraform deployment is divided into 2 stages -
 
 - **Pre-Config** stage
   - Create the required infra for RC deployment
 - **Setup** Stage
   - Deploy the Core RC services
-- **Post-Config** Stage
-  - Perform all post configurations like realm import and keycloak secret generation
   
 ### Pre-requisites
 
@@ -61,12 +59,11 @@ The entrie Terraform deployment is divided into 3 stages -
 - **(***Root Folder***)**
   - **assets**
     - images
-    - architetcure diagrams
+    - architecture diagrams
     - ...(more)
   - **builds**
     - **apps** - Deploy/Remove all Application services
     - **infra** - Deploy/Remove all Infrastructure components end to end
-    - **post-setup** - Configure keycloak with realms and configure secrets
   - **deployments -** Store config files required for deployment
     - **configs**
       - Store config files required for deployment
@@ -135,7 +132,7 @@ gcloud config set compute/zone $ZONE
 
 #### Setup Service Account
 
-Current authenticated user will handover control to a **Service Account** which would be used for all subsequent resource deployment and management
+Current authenticated user will hand over control to a **Service Account** which would be used for all subsequent resource deployment and management
 
 ```bash
 gcloud iam service-accounts create $GSA_DISPLAY_NAME --display-name=$GSA_DISPLAY_NAME
@@ -153,7 +150,7 @@ gcloud projects add-iam-policy-binding $PROJECT_ID --member=serviceAccount:$GSA 
 
 #### Deploy Infrastructure using Terraform
 
-#### Teraform State management
+#### Terraform State management
 ####The PROJECT_ID needs to be updated in the command below.
 
 ```bash
@@ -198,7 +195,7 @@ lb_public_ip = "**.93.6.**"
 sql_private_ip = "**.125.196.**"
 ```
 
-_**Before moving to the next step, you need to create domain/sub-domain and create a DNS `A` type record pointing to `lb_public_ip`**_
+_**Before moving to the next step, you need to create domain/subdomain and create a DNS `A` type record pointing to `lb_public_ip`**_
 
 _`deployments/schemas/*` contains sample schemas which will be mounted to registry services. You can add your custom schemas in this directory._
 
@@ -294,7 +291,7 @@ Before executing the APIs a super admin user needs to be created in keycloak. Fo
 Open postman and import both the collection and environment collections
 
 - Select the `rc` environment from the dropdown and modify host to point to your specific domain
-- You can trigger `get credentials schemas` to get all the schemas registed
+- You can trigger `get credentials schemas` to get all the schemas registered
 - Next trigger `create template` api to create certificate template
 - Modify `get admin token` request with the super-admin details created before
 - The next set of apis will create an Institute admin and issue a Student VC.
