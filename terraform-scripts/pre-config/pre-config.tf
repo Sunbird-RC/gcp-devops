@@ -28,6 +28,19 @@ resource "google_compute_network" "vpc" {
   mtu                     = var.networkInfo.mtu
 }
 
+resource "google_project_service" "servicenetworking" {
+  project            = var.project_id
+  service            = "servicenetworking.googleapis.com"
+  disable_on_destroy = false
+}
+
+resource "google_compute_network" "private_pool_vpc" {
+  name                    = "${var.projectInfo.name}-private-build-pool-vpc"
+  project                 = var.project_id
+  auto_create_subnetworks = false
+  depends_on              = [google_project_service.servicenetworking]
+}
+
 resource "google_compute_subnetwork" "gke_subnet" {
   name          = var.networkInfo.gke_subnet.name
   project       = var.project_id
@@ -318,11 +331,12 @@ module "cloudbuild_private_pool" {
   project_id                = var.project_id
   network_project_id        = var.project_id
   location                  = var.projectInfo.region
-  create_cloudbuild_network = true
-  private_pool_vpc_name     = "${var.projectInfo.name}-private-build-pool-vpc"
+  create_cloudbuild_network = false
+  private_pool_vpc_name     = google_compute_network.private_pool_vpc.name
   worker_pool_name          = "${var.projectInfo.name}-cloudbuild-private-worker-pool"
   worker_address            = var.vpnInfo.workerpool_range
   worker_range_name         = "${var.projectInfo.name}-private-pool-worker-range"
+  depends_on = [google_compute_network.private_pool_vpc]
 }
 
 module "vpn_ha_1" {
@@ -330,8 +344,8 @@ module "vpn_ha_1" {
   version    = "3.1.1"
   project_id = var.project_id
   region     = var.projectInfo.region
-  network    = "${var.projectInfo.name}-private-build-pool-vpc"
-  name       = "cloudbuild-to-${google_compute_network.vpc.name}"
+  network    = google_compute_network.private_pool_vpc.name
+  name       = "${var.projectInfo.name}-cloudbuild-to-${google_compute_network.vpc.name}"
   router_asn = var.vpnInfo.gateway_1_asn
   router_advertise_config = {
     ip_ranges = {
@@ -375,7 +389,7 @@ module "vpn_ha_2" {
   project_id = var.project_id
   region     = var.projectInfo.region
   network    = google_compute_network.vpc.name
-  name       = "${google_compute_network.vpc.name}-to-cloudbuild"
+  name       = "${var.projectInfo.name}-${google_compute_network.vpc.name}-to-cloudbuild"
   router_asn = var.vpnInfo.gateway_2_asn
   router_advertise_config = {
     ip_ranges = {
