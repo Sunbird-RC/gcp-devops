@@ -1,0 +1,28 @@
+steps:
+- name: 'hashicorp/terraform:1.6.1'
+  id: 'init'
+  dir: '${_WORKING_DIR_}'
+  args: ['init', '--reconfigure', '--backend-config=bucket=${_LOG_BUCKET_}', '--backend-config=prefix=terraform/state/fr-dev/pre-config']
+- name: 'hashicorp/terraform:1.6.1'
+  id: 'plan'
+  dir: '${_WORKING_DIR_}'
+  args: ['plan', '-out', 'out.plan', '-var-file=${_TFSVARS_FILE_PATH_}', '-var=project_id=${_PROJECT_ID_}', '-var=service_account=${_SERVICE_ACCOUNT_}']
+  waitFor:
+  - 'init'
+- name: 'hashicorp/terraform:1.6.1'
+  id: 'apply'
+  dir: '${_WORKING_DIR_}'
+  args: ['apply', 'out.plan']
+  waitFor:
+  - 'plan'
+tags: ['cloud-builders-community']
+serviceAccount: "projects/${_PROJECT_ID_}/serviceAccounts/${_SERVICE_ACCOUNT_}"
+logsBucket: "gs://${_LOG_BUCKET_}"
+substitutions:
+  _PROJECT_ID_: ''
+  _SERVICE_ACCOUNT_: ''
+  _WORKING_DIR_: 'terraform-scripts/pre-config'
+  _TFSVARS_FILE_PATH_: '../../terraform-variables/dev/pre-config/pre-config.tfvars'
+  _LOG_BUCKET_: ''
+options:
+    dynamicSubstitutions: true

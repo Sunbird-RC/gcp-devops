@@ -1,0 +1,163 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "type": "object",
+  "properties": {
+    "Student": {
+      "$ref": "#/definitions/Student"
+    }
+  },
+  "required": [
+    "Student"
+  ],
+  "title":"Student",
+  "definitions": {
+    "Student": {
+      "$id": "#/properties/Student",
+      "type": "object",
+      "title": "Student",
+      "required": [
+        "usn"
+      ],
+      "properties": {
+        "usn": {
+          "type": "string"
+        },
+        "fullName": {
+          "type": "string",
+          "title": "Full Name"
+        },
+        "dob": {
+          "type": "string",
+          "format": "date"
+        },
+        "gender": {
+          "type": "string",
+          "enum": [
+            "Male",
+            "Female",
+            "Other"
+          ]
+        },
+        "mobile": {
+          "type": "string",
+          "title": "Mobile number"
+        },
+        "email": {
+          "type": "string",
+          "title": "Email ID"
+        },
+        "institute": {
+          "type": "string",
+          "title": "Institute Name"
+        },
+        "department": {
+          "type": "string",
+          "title": "Department"
+        },
+        "semester": {
+          "type": "string",
+          "title": "Semester"
+        },
+        "cgpa": {
+          "type": "string",
+          "title": "CGPA"
+        },
+        "yop": {
+          "type": "string",
+          "title": "Year of passing"
+        },
+        "expiresOn": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "issuedOn": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    }
+  },
+  "_osConfig": {
+    "credentialTemplate": {
+      "@context": [
+        "https://www.w3.org/2018/credentials/v1",
+        {
+          "@context": {
+            "@version": 1.1,
+            "@protected": true,
+            "id": "@id",
+            "type": "@type",
+            "schema": "https://schema.org/",
+            "StudentCredential": {
+              "@id": "did:StudentCredential",
+              "@context": {
+                "@version": 1.1,
+                "@protected": true,
+                "id": "@id",
+                "type": "@type",
+                "usn": "schema:Text",
+                "fullName": "schema:name",
+                "dob": "schema:birthDate",
+                "gender": "schema:gender",
+                "email": "schema:email",
+                "mobile": "schema:telephone",
+                "institute": "schema:Text",
+                "department": "schema:Text",
+                "semester": "schema:Text",
+                "yop": "schema:Text",
+                "cgpa": "schema:Text"
+              }
+            }
+          }
+        }
+      ],
+      "type": [
+        "VerifiableCredential",
+        "StudentCredential"
+      ],
+      "issuer": "Registry",
+      "issuanceDate": "{{issuedOn}}",
+      "expirationDate": "{{expiresOn}}",
+      "credentialSubject": {
+        "id": "did:{{osid}}",
+        "type": "StudentCredential",
+        "usn": "{{usn}}",
+        "fullName": "{{fullName}}",
+        "dob": "{{dob}}",
+        "gender": "{{gender}}",
+        "email": "{{email}}",
+        "mobile": "{{mobile}}",
+        "institute": "{{institute}}",
+        "department": "{{department}}",
+        "semester": "{{semester}}",
+        "yop": "{{yop}}",
+        "cgpa": "{{cgpa}}"
+      }
+    },
+    "certificateTemplates": {
+      "first": "minio://Student/1-68619c95-3f40-45b8-b6ba-56eba055dc11/email/documents/3165a481-8078-447c-8cc0-f310869cb40d-Insurancetemplate.html"
+    },
+    "osComment": [],
+    "privateFields": [],
+    "systemFields": [
+      "_osSignedData",
+      "_osCredentialId",
+      "_osAttestedData",
+      "osCreatedAt",
+      "osUpdatedAt",
+      "osCreatedBy",
+      "osUpdatedBy"
+    ],
+    "indexFields": [],
+    "uniqueIndexFields": [],
+    "roles": ["Institute"],
+    "inviteRoles": ["Institute"],
+    "ownershipAttributes": [
+      {
+        "userId": "/email",
+        "email": "/email",
+        "mobile": "/mobile"
+      }
+    ]
+  }
+}

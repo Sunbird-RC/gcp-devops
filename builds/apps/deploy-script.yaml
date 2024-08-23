@@ -1,0 +1,112 @@
+steps:
+- name: 'gcr.io/cloud-builders/gcloud'
+  id: 'get-credentials'
+  args: ['container', 'clusters', 'get-credentials', '${_CLUSTER_NAME_}', '--project=${_PROJECT_ID_}', '--region=${_REGION_}', '--internal-ip']
+- name: 'gcr.io/cloud-builders/kubectl'
+  id: 'ingress-cluster-admin'
+  entrypoint: 'kubectl'
+  args: ['create', 'clusterrolebinding', 'cluster-admin-binding', '--clusterrole', 'cluster-admin', '--user', '$(gcloud config get-value account)']
+  waitFor:
+    - 'get-credentials'
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  id: 'install-ingress'
+  entrypoint: 'bash'
+  args:
+    - -c
+    - |
+      bash ./deployments/scripts/ingress-init.sh ${_REGION_} ${_LB_NAME_}
+  waitFor:
+    - 'ingress-cluster-admin'
+- name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
+  id: 'helm-vault-repo'
+  entrypoint: 'helm'
+  args: ['repo', 'add', 'hashicorp', 'https://helm.releases.hashicorp.com']
+  waitFor:
+    - 'install-ingress'
+- name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
+  id: 'install-vault'
+  entrypoint: 'helm'
+  args: ['install', 'vault', 'hashicorp/vault', '--values=deployments/configs/vault-raft.yaml', '-n', 'vault', '--create-namespace']
+  waitFor:
+    - 'helm-vault-repo'
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  id: 'vault-init'
+  entrypoint: 'bash'
+  args:
+    - -c
+    - |
+      sh ./deployments/scripts/vault-init.sh
+  waitFor:
+    - 'install-vault'
+- name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
+  id: 'helm-cert-manager-repo'
+  entrypoint: 'helm'
+  args: ['repo', 'add', 'jetstack', 'https://charts.jetstack.io']
+  waitFor:
+    - 'vault-init'
+- name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
+  id: 'install-certs-manager'
+  entrypoint: 'helm'
+  args: ['install', 'cert-manager', 'jetstack/cert-manager', '--version', 'v1.15.1', '-n', 'cert-manager', '--create-namespace', '--set', 'crds.enabled=true']
+  waitFor:
+    - 'helm-cert-manager-repo'
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  id: 'certs-issuer'
+  entrypoint: 'bash'
+  args:
+    - -c
+    - |
+      kubectl create ns registry &&
+      cat deployments/configs/cert-issuer.yaml | sed "s/EMAIL/${_EMAIL_ID_}/g" | kubectl apply -n registry -f -
+  waitFor:
+    - 'install-certs-manager'
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: 'git'
+  id: 'clone-repo'
+  args: ['clone', 'https://github.com/tejash-jl/sunbird-rc-devops.git']
+  dir: 'sunbird-rc'
+  waitFor: 'certs-issuer'
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  id: 'helm-preconfig'
+  entrypoint: 'bash'
+  waitFor: 'clone-repo'
+  args:
+    - -c
+    - |
+      rm -rf sunbird-rc/sunbird-rc-devops/deploy-as-code/helm/v2/registryAndCredentialling/helm_charts/charts/registry/schemas/*
+      cp ./deployments/scripts/registry-init.sh sunbird-rc/sunbird-rc-devops/deploy-as-code/helm/v2/registryAndCredentialling/helm_charts
+      cp ./deployments/schemas/* sunbird-rc/sunbird-rc-devops/deploy-as-code/helm/v2/registryAndCredentialling/helm_charts/charts/registry/schemas
+      cd sunbird-rc/sunbird-rc-devops/deploy-as-code/helm/v2/registryAndCredentialling/helm_charts
+      sh ./registry-init.sh ${_DOMAIN_} ${_SECRET_NAME_} ${_DB_NAME_}
+- name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
+  id: 'install-helm-chart'
+  entrypoint: 'helm'
+  dir: 'sunbird-rc/sunbird-rc-devops/deploy-as-code/helm/v2/registryAndCredentialling'
+  args: ['upgrade', '--install', '-n=registry', 'registry', 'helm_charts', '--create-namespace', '--set', 'global.host=${_DOMAIN_}', '--set', 'global.registry.search_provider="dev.sunbirdrc.registry.service.NativeSearchService"', '--set', 'global.registry.keycloak_user_set_password=true', '--set', 'global.database.user=registry', '--set-json', 'registry.ingress.annotations={"kubernetes.io/ingress.class": "nginx", "nginx.ingress.kubernetes.io/rewrite-target": "/$2", "cert-manager.io/issuer": "letsencrypt", "nginx.ingress.kubernetes.io/force-ssl-redirect": "true"}', '--set-json', 'registry.ingress.tls=[{"hosts": ["${_DOMAIN_}"], "secretName": "registry-tls"}]' ]
+  waitFor: 'helm-preconfig'
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  id: 'keycloak-setup'
+  entrypoint: 'bash'
+  waitFor: 'install-helm-chart'
+  args:
+    - -c
+    - bash deployments/scripts/keycloak-init.sh ${_DOMAIN_}
+tags: ['cloud-builders-community']
+serviceAccount: "projects/${_PROJECT_ID_}/serviceAccounts/${_SERVICE_ACCOUNT_}"
+logsBucket: "gs://${_LOG_BUCKET_}"
+substitutions:
+  _PROJECT_ID_: ''
+  _REGION_: ''
+  _CLUSTER_NAME_: 'functional-registry-cluster'
+  _DOMAIN_: ''
+  _LOG_BUCKET_: ''
+  _EMAIL_ID_: ''
+  _SERVICE_ACCOUNT_: ''
+  _SECRET_NAME_: 'registry'
+  _NAME_: 'functional-registry'
+  _DB_NAME_: 'functional-registry-pgsql'
+  _LB_NAME_: 'functional-registry-glb-lb-ip'
+options:
+    dynamicSubstitutions: true
+    pool:
+      name: 'projects/${_PROJECT_ID_}/locations/${_REGION_}/workerPools/${_NAME_}-cloudbuild-private-worker-pool'

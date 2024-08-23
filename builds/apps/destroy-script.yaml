@@ -1,0 +1,27 @@
+steps:
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'get-credentials'
+    args: ['container', 'clusters', 'get-credentials', '${_CLUSTER_NAME_}', '--project=${_PROJECT_ID_}', '--region=${_REGION_}', '--internal-ip']
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'delete-deployment'
+    entrypoint: 'bash'
+    args:
+      - -c
+      - |
+        bash ./deployments/scripts/destroy.sh
+    waitFor:
+      - 'get-credentials'
+tags: ['cloud-builders-community']
+serviceAccount: "projects/${_PROJECT_ID_}/serviceAccounts/${_SERVICE_ACCOUNT_}"
+logsBucket: "gs://${_LOG_BUCKET_}"
+substitutions:
+  _PROJECT_ID_: ''
+  _REGION_: ''
+  _CLUSTER_NAME_: 'functional-registry-cluster'
+  _LOG_BUCKET_: ''
+  _SERVICE_ACCOUNT_: ''
+  _NAME_: 'functional-registry'
+options:
+    dynamicSubstitutions: true
+    pool:
+      name: 'projects/${_PROJECT_ID_}/locations/${_REGION_}/workerPools/${_NAME_}-cloudbuild-private-worker-pool'
