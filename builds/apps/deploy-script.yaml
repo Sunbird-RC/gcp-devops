@@ -63,7 +63,7 @@ steps:
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   entrypoint: 'git'
   id: 'clone-repo'
-  args: ['clone', 'https://github.com/tejash-jl/sunbird-rc-devops.git']
+  args: ['clone', 'https://github.com/Sunbird-RC/devops.git']
   dir: 'sunbird-rc'
   waitFor: 'certs-issuer'
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
